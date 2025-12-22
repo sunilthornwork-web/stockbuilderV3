@@ -385,12 +385,7 @@ button.input {
     _renderUI();
   };
 
-  // Logout clear token
-  menuLogout.addEventListener("click", () => {
-    localStorage.removeItem("adminToken");
-  });
-
-  function renderProducts() {
+    function renderProducts() {
     const list = document.getElementById("productList");
     const q = document.getElementById("searchInput").value.toLowerCase();
     const cat = document.getElementById("categoryFilter").value;
@@ -546,15 +541,6 @@ button.input {
   closeMenu();
   document.getElementById("loginModal").classList.remove("hidden");
 });
-
-
-  menuLogout.addEventListener("click", () => {
-    state.role = "viewer";
-    localStorage.removeItem("role");
-    updateMenu();
-    renderUI();
-    closeMenu();
-  });
 
   function updateMenu() {
     if (state.role === "admin") {
