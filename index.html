@@ -385,8 +385,8 @@
       (!cat || p.category === cat)
     );
 
-    list.innerHTML = items.map(p => `
-      <div class="box card" onclick='openDetail(${JSON.stringify(p)})'>
+    list.innerHTML = items.map((p, i) => `
+       <div class="box card" onclick="openDetailByIndex(${i})">
         <img src="${p.image || ""}" />
         <div class="product-sku">SKU: ${p.id}</div>
         <div class="product-title-row">
@@ -421,6 +421,11 @@
       document.getElementById("productModal").classList.add("hidden");
     }
   });
+
+ function openDetailByIndex(i) {
+  openDetail(state.products[i]);
+ }
+
 </script>
 
 
