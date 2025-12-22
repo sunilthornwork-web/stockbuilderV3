@@ -544,8 +544,8 @@ if (loadingEl) loadingEl.classList.add("hidden");
     return await apiRequest("updateStock", { id, stock });
   }
 
-  async function uploadImage(file, sku = "") {
-  if (!file) return "";
+  async function uploadImage(file, sku) {
+  if (!file || !sku) return "";
 
   const base64 = await new Promise(resolve => {
     const reader = new FileReader();
@@ -557,10 +557,10 @@ if (loadingEl) loadingEl.classList.add("hidden");
     filename: file.name,
     mimeType: file.type,
     data: base64,
-    sku // ✅ ส่งรหัสสินค้าไปด้วย
+    sku: sku
   });
 
-  return res ? normalizeDriveLink(res.imageUrl) : "";
+  return res ? res.imageUrl : "";
 }
   
 </script>
