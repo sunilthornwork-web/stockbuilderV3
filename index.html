@@ -174,11 +174,62 @@
     background: rgba(239, 68, 68, 0.2);
     color: #f87171;
   }
+
+  /* ========================= */
+/* MENU OVERLAY */
+/* ========================= */
+#menuOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+}
+
+.menu-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+}
+
+.menu-panel {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 220px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+.menu-item {
+  padding: 14px 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.menu-item:hover {
+  background: rgba(255,255,255,0.08);
+}
+ 
  </style>
 </head>
 
 <body>
   <div class="app">
+
+    <!-- ===================== -->
+<!-- MENU OVERLAY -->
+<!-- ===================== -->
+<div id="menuOverlay" class="hidden">
+  <div class="menu-backdrop"></div>
+  <div class="menu-panel">
+    <div class="menu-item" id="menuLogin">🔐 Admin Login</div>
+    <div class="menu-item hidden" id="menuAddProduct">➕ เพิ่มสินค้าใหม่</div>
+    <div class="menu-item hidden" id="menuLogout">🔒 Logout</div>
+  </div>
+</div>
 
     <!-- ===================== -->
     <!-- VIEWER UI -->
@@ -219,10 +270,15 @@
     <section id="adminView" class="hidden">
 
       <!-- HEADER -->
-      <div class="header">
-        <div>📦 Admin Dashboard</div>
-        <div></div>
-      </div>
+<div class="header">
+  <div>📦 Admin Dashboard</div>
+  <div class="menu-btn">☰</div>
+</div>
+
+      <!-- SEARCH (ADMIN) -->
+<div class="box placeholder">
+  🔍 ค้นหาสินค้า...
+</div>
 
       <!-- ACTION -->
       <div class="box placeholder">
@@ -274,9 +330,63 @@
   <!-- EVENT HANDLERS -->
   <!-- ===================== -->
   <script>
-    // Skeleton only
-    // Event handlers will be added in later steps
-  </script>
+  const menuOverlay = document.getElementById("menuOverlay");
+  const menuLogin = document.getElementById("menuLogin");
+  const menuLogout = document.getElementById("menuLogout");
+  const menuAddProduct = document.getElementById("menuAddProduct");
+
+  function openMenu() {
+    menuOverlay.classList.remove("hidden");
+  }
+
+  function closeMenu() {
+    menuOverlay.classList.add("hidden");
+  }
+
+  document.querySelectorAll(".menu-btn").forEach(btn => {
+    btn.addEventListener("click", openMenu);
+  });
+
+  document.querySelector(".menu-backdrop").addEventListener("click", closeMenu);
+
+  menuLogin.addEventListener("click", () => {
+    state.role = "admin";
+    localStorage.setItem("role", "admin");
+    updateMenu();
+    renderUI();
+    closeMenu();
+  });
+
+  menuLogout.addEventListener("click", () => {
+    state.role = "viewer";
+    localStorage.removeItem("role");
+    updateMenu();
+    renderUI();
+    closeMenu();
+  });
+
+  function updateMenu() {
+    if (state.role === "admin") {
+      menuLogin.classList.add("hidden");
+      menuAddProduct.classList.remove("hidden");
+      menuLogout.classList.remove("hidden");
+    } else {
+      menuLogin.classList.remove("hidden");
+      menuAddProduct.classList.add("hidden");
+      menuLogout.classList.add("hidden");
+    }
+  }
+
+  // Init
+  const savedRole = localStorage.getItem("role");
+  if (savedRole === "admin") {
+    state.role = "admin";
+  }
+
+  updateMenu();
+  renderUI();
+</script>
+
 
 </body>
 </html>
