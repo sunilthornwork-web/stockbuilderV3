@@ -358,6 +358,7 @@ button.input {
   <script>
 let editIndex = null;
 </script>
+
   <!-- ===================== -->
   <!-- APP STATE -->
   <!-- ===================== -->
@@ -633,10 +634,11 @@ if (loadingEl) loadingEl.classList.add("hidden");
    PRODUCT FORM CONTROL
 ========================= */
 
-unction openAddForm() {
-  editIndex = null; // ✅ RESET STATE
+function openAddForm() {
+  editIndex = null;
 
   document.getElementById("formTitle").textContent = "เพิ่มสินค้า";
+
   ["f_id","f_name","f_price","f_stock","f_category"].forEach(id => {
     document.getElementById(id).value = "";
   });
@@ -751,7 +753,7 @@ document.addEventListener("DOMContentLoaded", () => {
   saveBtn.addEventListener("click", async () => {
  
   const imageFile = document.getElementById("f_image")?.files?.[0];
-  const productId = f_id.value.trim();
+  const productId = document.getElementById("f_id").value.trim();
 
   let imageUrl = "";
 
