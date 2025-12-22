@@ -631,6 +631,45 @@ function normalizeDriveLink(url) {
     
 </script>
 
+  <script>
+  // =====================
+  // ADD PRODUCT FLOW
+  // =====================
+
+  let editIndex = null;
+
+  function openAddForm() {
+    editIndex = null;
+
+    document.getElementById("formTitle").textContent = "เพิ่มสินค้า";
+
+    ["f_id","f_name","f_price","f_stock","f_category"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+
+    const status = document.getElementById("f_status");
+    if (status) status.value = "พร้อมส่ง";
+
+    const imageInput = document.getElementById("f_image");
+    if (imageInput) imageInput.value = "";
+
+    const hint = document.getElementById("currentImageHint");
+    if (hint) hint.classList.add("hidden");
+
+    document.getElementById("productFormModal").classList.remove("hidden");
+  }
+
+  // hook menu ➕ เพิ่มสินค้า
+  if (typeof menuAddProduct !== "undefined") {
+    menuAddProduct.addEventListener("click", () => {
+      closeMenu();
+      openAddForm();
+    });
+  }
+</script>
+
+  
 <script>
   document.getElementById("searchInput").addEventListener("input", renderProducts);
   document.getElementById("categoryFilter").addEventListener("change", renderProducts);
