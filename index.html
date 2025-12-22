@@ -385,6 +385,11 @@
       (!cat || p.category === cat)
     );
 
+      if (items.length === 0) {
+    list.innerHTML = `<div class="box placeholder">ไม่พบสินค้า</div>`;
+    return;
+   }
+
     list.innerHTML = items.map((p, i) => `
        <div class="box card" onclick="openDetailByIndex(${i})">
         <img src="${p.image || ""}" />
