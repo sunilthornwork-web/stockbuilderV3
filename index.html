@@ -236,8 +236,12 @@
 .card img {
   width: 100%;
   height: 180px;
-  object-fit: contain;   /* ✅ จาก cover → contain */
-  background: #000;      /* (ไม่บังคับ แต่สวย) */
+  object-fit: contain;
+  background: linear-gradient(
+    135deg,
+    rgba(255,255,255,0.08),
+    rgba(255,255,255,0.02)
+  );
   border-radius: 14px;
 }
 
