@@ -808,6 +808,11 @@ if (editIndex !== null) {
   imageUrl = state.products[editIndex]?.image || "";
 }
 
+if (imageFile && imageFile.name && imageFile.type) {
+  imageUrl = await uploadImage(imageFile);
+}
+    
+
 // 3️⃣ ถ้ามีรูปใหม่ → upload และแทนที่
 if (imageFile) {
   imageUrl = await uploadImage(imageFile, productId);
