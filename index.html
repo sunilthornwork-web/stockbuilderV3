@@ -371,19 +371,24 @@ button.input {
   <!-- RENDER FUNCTIONS -->
   <!-- ===================== -->
   <script>
-  function renderUI() {
-    const viewerView = document.getElementById("viewerView");
-    const adminView = document.getElementById("adminView");
-
-    if (state.role === "viewer") {
-      viewerView.classList.remove("hidden");
-      adminView.classList.add("hidden");
-      renderProducts();
-    } else {
-      viewerView.classList.add("hidden");
-      adminView.classList.remove("hidden");
-    }
+  // Guard: ถ้าไม่มี token ห้ามเข้า Admin
+  function hasAdminAuth() {
+    return !!localStorage.getItem("adminToken");
   }
+
+  // Override renderUI guard
+  const _renderUI = renderUI;
+  renderUI = function () {
+    if (state.role === "admin" && !hasAdminAuth()) {
+      state.role = "viewer";
+    }
+    _renderUI();
+  };
+
+  // Logout clear token
+  menuLogout.addEventListener("click", () => {
+    localStorage.removeItem("adminToken");
+  });
 
   function renderProducts() {
     const list = document.getElementById("productList");
@@ -628,24 +633,6 @@ button.input {
     loginModal.classList.add("hidden");
   });
 
-  // Guard: ถ้าไม่มี token ห้ามเข้า Admin
-  function hasAdminAuth() {
-    return !!localStorage.getItem("adminToken");
-  }
-
-  // Override renderUI guard
-  const _renderUI = renderUI;
-  renderUI = function () {
-    if (state.role === "admin" && !hasAdminAuth()) {
-      state.role = "viewer";
-    }
-    _renderUI();
-  };
-
-  // Logout clear token
-  menuLogout.addEventListener("click", () => {
-    localStorage.removeItem("adminToken");
-  });
 </script>
 
   <!-- ===================== -->
