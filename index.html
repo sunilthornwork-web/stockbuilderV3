@@ -544,7 +544,7 @@ if (loadingEl) loadingEl.classList.add("hidden");
     return await apiRequest("updateStock", { id, stock });
   }
 
-  async function uploadImage(file) {
+  async function uploadImage(file, sku = "") {
   if (!file) return "";
 
   const base64 = await new Promise(resolve => {
@@ -556,17 +556,11 @@ if (loadingEl) loadingEl.classList.add("hidden");
   const res = await apiRequest("uploadImage", {
     filename: file.name,
     mimeType: file.type,
-    data: base64
+    data: base64,
+    sku // ✅ ส่งรหัสสินค้าไปด้วย
   });
 
   return res ? normalizeDriveLink(res.imageUrl) : "";
-}
-
-function normalizeDriveLink(url) {
-  if (!url) return "";
-  if (url.includes("uc?id=")) return url;
-  const id = url.match(/[-\w]{25,}/);
-  return id ? `https://drive.google.com/uc?id=${id[0]}` : url;
 }
   
 </script>
@@ -754,7 +748,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ถ้าเลือกไฟล์ใหม่ → upload
     if (imageFile) {
-      imageUrl = await uploadImage(imageFile);
+      imageUrl = await uploadImage(imageFile, product.id);
     }
 
     const product = {
