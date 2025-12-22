@@ -407,6 +407,25 @@ button.input {
     `).join("");
   }
 
+  function renderUI() {
+    const viewerView = document.getElementById("viewerView");
+    const adminView = document.getElementById("adminView");
+
+    // Guard admin
+    if (state.role === "admin" && !hasAdminAuth()) {
+      state.role = "viewer";
+    }
+
+    if (state.role === "viewer") {
+      viewerView.classList.remove("hidden");
+      adminView.classList.add("hidden");
+      renderProducts();
+    } else {
+      viewerView.classList.add("hidden");
+      adminView.classList.remove("hidden");
+    }
+  }  
+
   function openDetail(p) {
     const modal = document.getElementById("productModal");
     const c = document.getElementById("modalContent");
