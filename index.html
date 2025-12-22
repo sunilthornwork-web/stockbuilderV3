@@ -212,6 +212,59 @@
 .menu-item:hover {
   background: rgba(255,255,255,0.08);
 }
+
+/* ========================= */
+/* INPUTS */
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  outline: none;
+}
+
+/* ========================= */
+/* PRODUCT CARD (VIEWER) */
+.card {
+  cursor: pointer;
+}
+
+.card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+/* ========================= */
+/* MODAL */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+}
+
+.modal-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 90%;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  border-radius: 20px 20px 0 0;
+  padding: 16px;
+  overflow-y: auto;
+}
+   
  
  </style>
 </head>
@@ -244,23 +297,19 @@
       </div>
 
       <!-- SEARCH -->
-      <div class="box placeholder">
-        🔍 Search bar
-      </div>
+<div class="box">
+  <input id="searchInput" class="input" placeholder="ค้นหาสินค้า / SKU" />
+</div>
 
-      <!-- FILTER -->
-      <div class="box placeholder">
-        🏷️ Filter หมวด
-      </div>
+      <!-- FILTER (DROPDOWN) -->
+<div class="box">
+  <select id="categoryFilter" class="input">
+    <option value="">ทุกหมวด</option>
+  </select>
+</div>
 
       <!-- PRODUCT LIST (1 COL) -->
-      <div class="box placeholder">
-        🛒 Product Card (1 col)
-      </div>
-
-      <div class="box placeholder">
-        🛒 Product Card (1 col)
-      </div>
+<div id="productList"></div>
 
     </section>
 
@@ -312,21 +361,68 @@
   <!-- RENDER FUNCTIONS -->
   <!-- ===================== -->
   <script>
-    function renderUI() {
-      const viewerView = document.getElementById("viewerView");
-      const adminView = document.getElementById("adminView");
+  function renderUI() {
+    const viewerView = document.getElementById("viewerView");
+    const adminView = document.getElementById("adminView");
 
-      if (state.role === "viewer") {
-        viewerView.classList.remove("hidden");
-        adminView.classList.add("hidden");
-      } else {
-        viewerView.classList.add("hidden");
-        adminView.classList.remove("hidden");
-      }
+    if (state.role === "viewer") {
+      viewerView.classList.remove("hidden");
+      adminView.classList.add("hidden");
+      renderProducts();
+    } else {
+      viewerView.classList.add("hidden");
+      adminView.classList.remove("hidden");
     }
+  }
 
-    renderUI();
-  </script>
+  function renderProducts() {
+    const list = document.getElementById("productList");
+    const q = document.getElementById("searchInput").value.toLowerCase();
+    const cat = document.getElementById("categoryFilter").value;
+
+    let items = state.products.filter(p =>
+      (!q || p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q)) &&
+      (!cat || p.category === cat)
+    );
+
+    list.innerHTML = items.map(p => `
+      <div class="box card" onclick='openDetail(${JSON.stringify(p)})'>
+        <img src="${p.image || ""}" />
+        <div class="product-sku">SKU: ${p.id}</div>
+        <div class="product-title-row">
+          <div class="product-title">${p.name}</div>
+          <div class="cart-btn">🛒</div>
+        </div>
+        <div class="product-price">฿${p.price}</div>
+        <div class="product-bottom">
+          <div>จำนวน: ${p.stock}</div>
+          <div class="status ready">${p.status}</div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function openDetail(p) {
+    const modal = document.getElementById("productModal");
+    const c = document.getElementById("modalContent");
+    c.innerHTML = `
+      <img src="${p.image || ""}" style="width:100%;border-radius:14px" />
+      <h3>${p.name}</h3>
+      <p>SKU: ${p.id}</p>
+      <p>ราคา: ฿${p.price}</p>
+      <p>จำนวน: ${p.stock}</p>
+      <p>สถานะ: ${p.status}</p>
+    `;
+    modal.classList.remove("hidden");
+  }
+
+  document.addEventListener("click", e => {
+    if (e.target.classList.contains("modal-backdrop")) {
+      document.getElementById("productModal").classList.add("hidden");
+    }
+  });
+</script>
+
 
   <!-- ===================== -->
 <!-- API FUNCTIONS -->
@@ -457,7 +553,33 @@
 
   updateMenu();
   renderUI();
+    
 </script>
+
+<script>
+  document.getElementById("searchInput").addEventListener("input", renderProducts);
+  document.getElementById("categoryFilter").addEventListener("change", renderProducts);
+
+  // Load once
+  apiListProducts().then(() => {
+    const cats = [...new Set(state.products.map(p => p.category))];
+    const sel = document.getElementById("categoryFilter");
+    cats.forEach(c => {
+      const o = document.createElement("option");
+      o.value = c;
+      o.textContent = c;
+      sel.appendChild(o);
+    });
+  });
+</script>
+  
+  <!-- ===================== -->
+<!-- PRODUCT DETAIL MODAL -->
+<!-- ===================== -->
+<div id="productModal" class="modal hidden">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content" id="modalContent"></div>
+</div>
 
 
 </body>
