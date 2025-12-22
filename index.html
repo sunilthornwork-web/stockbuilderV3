@@ -690,98 +690,60 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 <script>
+document.addEventListener("DOMContentLoaded", () => {
   let editIndex = null;
 
-  function openAddForm() {
-    editIndex = null;
-    document.getElementById("formTitle").textContent = "เพิ่มสินค้า";
-    ["f_id","f_name","f_price","f_stock","f_category"].forEach(id => {
-      document.getElementById(id).value = "";
-    });
-    document.getElementById("productFormModal").classList.remove("hidden");
-    document.getElementById("currentImageHint").classList.add("hidden");
-  }
+  const saveBtn = document.getElementById("saveProductBtn");
+  if (!saveBtn) return; // guard กัน crash
 
-  function openEditForm(i) {
-  editIndex = i;
-  const p = state.products[i];
+  saveBtn.addEventListener("click", async () => {
+    const imageInput = document.getElementById("f_image");
+    const imageFile = imageInput?.files?.[0];
 
-  document.getElementById("formTitle").textContent = "แก้ไขสินค้า";
-  document.getElementById("f_id").value = p.id;
-  document.getElementById("f_name").value = p.name;
-  document.getElementById("f_price").value = p.price;
-  document.getElementById("f_stock").value = p.stock;
-  document.getElementById("f_category").value = p.category;
-  document.getElementById("f_status").value = p.status;
+    let imageUrl = "";
 
-  document.getElementById("productFormModal").classList.remove("hidden");
+    // แก้ไขสินค้า → ใช้รูปเดิมก่อน
+    if (editIndex !== null) {
+      imageUrl = state.products[editIndex]?.image || "";
+    }
 
-  // ✅ ===== เพิ่มท้าย function ตรงนี้ =====
-  const hint = document.getElementById("currentImageHint");
-  if (p.image) {
-    hint.classList.remove("hidden");
-  } else {
-    hint.classList.add("hidden");
-  }
-  // ✅ ===== จบตรงนี้ =====
-}
-  
-  document.getElementById("saveProductBtn").addEventListener("click", async () => {
-  const imageInput = document.getElementById("f_image");
-  const imageFile = imageInput.files[0];
-  
-  let imageUrl = "";
+    // ถ้าเลือกไฟล์ใหม่ → upload
+    if (imageFile) {
+      imageUrl = await uploadImage(imageFile);
+    }
 
-  // แก้ไขสินค้า → ใช้รูปเดิมก่อน
-  if (editIndex !== null) {
-    imageUrl = state.products[editIndex].image || "";
-  }
+    const product = {
+      id: f_id.value.trim(),
+      name: f_name.value.trim(),
+      price: Number(f_price.value),
+      stock: Number(f_stock.value),
+      category: f_category.value.trim(),
+      status: f_status.value,
+      image: imageUrl
+    };
 
-  // ถ้าเลือกไฟล์ใหม่ → upload ทับ
-  if (imageFile) {
-    imageUrl = await uploadImage(imageFile);
-  }
+    if (!product.id || !product.name) {
+      formError.classList.remove("hidden");
+      return;
+    }
 
-  const product = {
-    id: f_id.value.trim(),
-    name: f_name.value.trim(),
-    price: Number(f_price.value),
-    stock: Number(f_stock.value),
-    category: f_category.value.trim(),
-    status: f_status.value,
-    image: imageUrl
-  };
+    if (product.price < 0 || product.stock < 0) {
+      formError.textContent = "ราคาและจำนวนต้องไม่ติดลบ";
+      formError.classList.remove("hidden");
+      return;
+    }
 
-  if (!product.id || !product.name) {
-    formError.classList.remove("hidden");
-    return;
-  }
+    if (editIndex === null) {
+      await apiAddProduct(product);
+    } else {
+      await apiUpdateProduct(product);
+    }
 
-  if (editIndex === null) {
-    await apiAddProduct(product);
-  } else {
-    await apiUpdateProduct(product);
-  }
-
-  await apiListProducts();
-  imageInput.value = ""; // reset
-  document.getElementById("productFormModal").classList.add("hidden");
+    await apiListProducts();
+    imageInput.value = "";
+    document.getElementById("productFormModal").classList.add("hidden");
+  });
 });
-
-  // close modal
-  document.querySelector("#productFormModal .modal-backdrop")
-    .addEventListener("click", () =>
-      document.getElementById("productFormModal").classList.add("hidden")
-    );
-
-  // hook menu ➕ เพิ่มสินค้า
-  if (typeof menuAddProduct !== "undefined") {
-    menuAddProduct.addEventListener("click", () => {
-      closeMenu();
-      openAddForm();
-    });
-  }
-
 </script>
   
 
