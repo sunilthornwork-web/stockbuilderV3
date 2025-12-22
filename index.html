@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>StockBuilder</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+
   
   <!-- ===================== -->
   <!-- UI STYLE (Skeleton) -->
@@ -841,6 +843,15 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
   </div>
 </div>
+
+<script>
+  function closeGlobalError() {
+    const modal = document.getElementById("globalError");
+    if (modal) {
+      modal.classList.add("hidden");
+    }
+  }
+</script>
   
 
 </body>
