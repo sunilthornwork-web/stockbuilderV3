@@ -340,9 +340,7 @@ button.input {
 </div>
 
       <!-- PRODUCT MANAGEMENT -->
-      <div class="box placeholder">
-        📦 Product Card (Admin)
-      </div>
+      <div id="adminProductList"></div>
 
     </section>
 
@@ -352,7 +350,7 @@ button.input {
   // =====================
   // API CONFIG
   // =====================
-  const API_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbwjFBf3miPNv0MkFujq9QcERqYQfDtevWskK0RriK1epnencJW0NPmpvURmHMx9QAc-/exec";
 </script>
 
   <!-- ===================== -->
@@ -423,9 +421,28 @@ button.input {
     } else {
       viewerView.classList.add("hidden");
       adminView.classList.remove("hidden");
+      renderAdminProducts();
     }
   }  
 
+  function renderAdminProducts() {
+    const list = document.getElementById("adminProductList");
+    if (!list) return;
+
+    list.innerHTML = state.products.map((p, i) => `
+      <div class="box">
+        <div><strong>${p.name}</strong></div>
+        <div>SKU: ${p.id}</div>
+        <div>ราคา: ${p.price}</div>
+        <div>สต๊อก: ${p.stock}</div>
+        <div>สถานะ: ${p.status}</div>
+        <div style="text-align:right">
+          <button onclick="openEditForm(${i})">✏️</button>
+        </div>
+      </div>
+    `).join("");
+  }
+    
   function openDetail(p) {
     const modal = document.getElementById("productModal");
     const c = document.getElementById("modalContent");
@@ -520,6 +537,32 @@ button.input {
   async function apiUpdateStock(id, stock) {
     return await apiRequest("updateStock", { id, stock });
   }
+
+  async function uploadImage(file) {
+  if (!file) return "";
+
+  const base64 = await new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(",")[1]);
+    reader.readAsDataURL(file);
+  });
+
+  const res = await apiRequest("uploadImage", {
+    filename: file.name,
+    mimeType: file.type,
+    data: base64
+  });
+
+  return res ? normalizeDriveLink(res.imageUrl) : "";
+}
+
+function normalizeDriveLink(url) {
+  if (!url) return "";
+  if (url.includes("uc?id=")) return url;
+  const id = url.match(/[-\w]{25,}/);
+  return id ? `https://drive.google.com/uc?id=${id[0]}` : url;
+}
+  
 </script>
 
   <!-- ===================== -->
@@ -561,6 +604,15 @@ button.input {
       menuLogout.classList.add("hidden");
     }
   }
+
+    menuLogout.addEventListener("click", () => {
+  localStorage.removeItem("adminToken");
+  localStorage.removeItem("role");
+  state.role = "viewer";
+  updateMenu();
+  renderUI();
+  closeMenu();
+});
 
   // Init
   const savedRole = localStorage.getItem("role");
@@ -621,6 +673,7 @@ button.input {
 
     // success
     localStorage.setItem("adminToken", res.token);
+    localStorage.setItem("role", "admin");
     state.role = "admin";
     updateMenu();
     renderUI();
@@ -628,6 +681,102 @@ button.input {
   });
 
 </script>
+
+<script>
+  let editIndex = null;
+
+  function openAddForm() {
+    editIndex = null;
+    document.getElementById("formTitle").textContent = "เพิ่มสินค้า";
+    ["f_id","f_name","f_price","f_stock","f_category"].forEach(id => {
+      document.getElementById(id).value = "";
+    });
+    document.getElementById("productFormModal").classList.remove("hidden");
+    document.getElementById("currentImageHint").classList.add("hidden");
+  }
+
+  function openEditForm(i) {
+  editIndex = i;
+  const p = state.products[i];
+
+  document.getElementById("formTitle").textContent = "แก้ไขสินค้า";
+  document.getElementById("f_id").value = p.id;
+  document.getElementById("f_name").value = p.name;
+  document.getElementById("f_price").value = p.price;
+  document.getElementById("f_stock").value = p.stock;
+  document.getElementById("f_category").value = p.category;
+  document.getElementById("f_status").value = p.status;
+
+  document.getElementById("productFormModal").classList.remove("hidden");
+
+  // ✅ ===== เพิ่มท้าย function ตรงนี้ =====
+  const hint = document.getElementById("currentImageHint");
+  if (p.image) {
+    hint.classList.remove("hidden");
+  } else {
+    hint.classList.add("hidden");
+  }
+  // ✅ ===== จบตรงนี้ =====
+}
+  
+  document.getElementById("saveProductBtn").addEventListener("click", async () => {
+  const imageInput = document.getElementById("f_image");
+  const imageFile = imageInput.files[0];
+  
+  let imageUrl = "";
+
+  // แก้ไขสินค้า → ใช้รูปเดิมก่อน
+  if (editIndex !== null) {
+    imageUrl = state.products[editIndex].image || "";
+  }
+
+  // ถ้าเลือกไฟล์ใหม่ → upload ทับ
+  if (imageFile) {
+    imageUrl = await uploadImage(imageFile);
+  }
+
+  const product = {
+    id: f_id.value.trim(),
+    name: f_name.value.trim(),
+    price: Number(f_price.value),
+    stock: Number(f_stock.value),
+    category: f_category.value.trim(),
+    status: f_status.value,
+    image: imageUrl
+  };
+
+  if (!product.id || !product.name) {
+    formError.classList.remove("hidden");
+    return;
+  }
+
+  if (editIndex === null) {
+    await apiAddProduct(product);
+  } else {
+    await apiUpdateProduct(product);
+  }
+
+  await apiListProducts();
+  imageInput.value = ""; // reset
+  document.getElementById("productFormModal").classList.add("hidden");
+});
+
+  // close modal
+  document.querySelector("#productFormModal .modal-backdrop")
+    .addEventListener("click", () =>
+      document.getElementById("productFormModal").classList.add("hidden")
+    );
+
+  // hook menu ➕ เพิ่มสินค้า
+  if (typeof menuAddProduct !== "undefined") {
+    menuAddProduct.addEventListener("click", () => {
+      closeMenu();
+      openAddForm();
+    });
+  }
+
+</script>
+  
 
   <!-- ===================== -->
 <!-- PRODUCT DETAIL MODAL -->
@@ -654,6 +803,46 @@ button.input {
       <button id="loginBtn" class="input">เข้าสู่ระบบ</button>
     </div>
     <div id="loginError" class="placeholder hidden">เข้าสู่ระบบไม่สำเร็จ</div>
+  </div>
+</div>
+
+<!-- ===================== -->
+<!-- PRODUCT FORM MODAL -->
+<!-- ===================== -->
+<div id="productFormModal" class="modal hidden">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content">
+    <h3 id="formTitle">เพิ่มสินค้า</h3>
+
+    <div class="box"><input id="f_id" class="input" placeholder="รหัสสินค้า" /></div>
+    <div class="box"><input id="f_name" class="input" placeholder="ชื่อสินค้า" /></div>
+    <div class="box"><input id="f_price" class="input" type="number" placeholder="ราคา" /></div>
+    <div class="box"><input id="f_stock" class="input" type="number" placeholder="จำนวน" /></div>
+    <div class="box"><input id="f_category" class="input" placeholder="หมวดสินค้า" /></div>
+
+    <div class="box">
+      <select id="f_status" class="input">
+        <option value="พร้อมส่ง">พร้อมส่ง</option>
+        <option value="หมด">หมด</option>
+        <option value="โกดังไทย">โกดังไทย</option>
+        <option value="อยู่ระหว่างจัดส่ง">อยู่ระหว่างจัดส่ง</option>
+      </select>
+    </div>
+
+    <!-- IMAGE UPLOAD -->
+<div class="box">
+  <input id="f_image" class="input" type="file" accept="image/*" />
+</div>
+
+<div id="currentImageHint" class="placeholder hidden">
+  📷 สินค้านี้มีรูปอยู่แล้ว
+</div>
+    
+    <div class="box">
+      <button id="saveProductBtn" class="input">บันทึก</button>
+    </div>
+
+    <div id="formError" class="placeholder hidden">กรุณากรอกข้อมูลให้ครบ</div>
   </div>
 </div>
   
