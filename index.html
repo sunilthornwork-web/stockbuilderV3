@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StockBuilder</title>
+
+  <!-- ===================== -->
+  <!-- UI STYLE (Skeleton) -->
+  <!-- ===================== -->
+  <style>
+    /* RESET */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background: #0b0f1a;
+      color: #ffffff;
+      min-height: 100vh;
+    }
+
+    /* BASIC LAYOUT */
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* HEADER */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .menu-btn {
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    /* PLACEHOLDER UI */
+    .box {
+      background: rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .placeholder {
+      opacity: 0.6;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <!-- ===================== -->
+    <!-- VIEWER UI -->
+    <!-- ===================== -->
+    <section id="viewerView">
+
+      <!-- HEADER -->
+      <div class="header">
+        <div class="menu-btn">☰</div>
+        <div>คลังสินค้า</div>
+        <div></div>
+      </div>
+
+      <!-- SEARCH -->
+      <div class="box placeholder">
+        🔍 Search bar
+      </div>
+
+      <!-- FILTER -->
+      <div class="box placeholder">
+        🏷️ Filter หมวด
+      </div>
+
+      <!-- PRODUCT LIST (1 COL) -->
+      <div class="box placeholder">
+        🛒 Product Card (1 col)
+      </div>
+
+      <div class="box placeholder">
+        🛒 Product Card (1 col)
+      </div>
+
+    </section>
+
+    <!-- ===================== -->
+    <!-- ADMIN UI -->
+    <!-- ===================== -->
+    <section id="adminView" class="hidden">
+
+      <!-- HEADER -->
+      <div class="header">
+        <div>📦 Admin Dashboard</div>
+        <div></div>
+      </div>
+
+      <!-- ACTION -->
+      <div class="box placeholder">
+        ➕ เพิ่มสินค้า
+      </div>
+
+      <!-- PRODUCT MANAGEMENT -->
+      <div class="box placeholder">
+        📦 Product Card (Admin)
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- ===================== -->
+  <!-- APP STATE -->
+  <!-- ===================== -->
+  <script>
+    const state = {
+      role: "viewer", // viewer | admin
+      products: [],
+      loading: false,
+      error: null
+    };
+  </script>
+
+  <!-- ===================== -->
+  <!-- RENDER FUNCTIONS -->
+  <!-- ===================== -->
+  <script>
+    function renderUI() {
+      const viewerView = document.getElementById("viewerView");
+      const adminView = document.getElementById("adminView");
+
+      if (state.role === "viewer") {
+        viewerView.classList.remove("hidden");
+        adminView.classList.add("hidden");
+      } else {
+        viewerView.classList.add("hidden");
+        adminView.classList.remove("hidden");
+      }
+    }
+
+    renderUI();
+  </script>
+
+  <!-- ===================== -->
+  <!-- EVENT HANDLERS -->
+  <!-- ===================== -->
+  <script>
+    // Skeleton only
+    // Event handlers will be added in later steps
+  </script>
+
+</body>
+</html>
