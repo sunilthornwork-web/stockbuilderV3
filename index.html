@@ -474,8 +474,8 @@ button.input {
 <!-- ===================== -->
 <script>
   async function apiRequest(action, payload = {}) {
-  state.loading = true;
-  document.getElementById("globalLoading").classList.remove("hidden");
+  const loadingEl = document.getElementById("globalLoading");
+if (loadingEl) loadingEl.classList.remove("hidden");
 
   try {
     // guard admin session
@@ -509,8 +509,8 @@ button.input {
     return null;
 
   } finally {
-    state.loading = false;
-    document.getElementById("globalLoading").classList.add("hidden");
+    const loadingEl = document.getElementById("globalLoading");
+if (loadingEl) loadingEl.classList.add("hidden");
   }
 }
 
@@ -816,6 +816,29 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
 
     <div id="formError" class="placeholder hidden">กรุณากรอกข้อมูลให้ครบ</div>
+  </div>
+</div>
+
+<!-- ===================== -->
+<!-- GLOBAL LOADING -->
+<!-- ===================== -->
+<div id="globalLoading" class="modal hidden">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content">
+    <div class="placeholder">⏳ กำลังประมวลผล...</div>
+  </div>
+</div>
+
+<!-- ===================== -->
+<!-- GLOBAL ERROR -->
+<!-- ===================== -->
+<div id="globalError" class="modal hidden">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content">
+    <div id="globalErrorText" class="placeholder"></div>
+    <div class="box">
+      <button class="input" onclick="closeGlobalError()">ปิด</button>
+    </div>
   </div>
 </div>
   
