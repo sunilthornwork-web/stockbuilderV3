@@ -625,6 +625,60 @@ if (loadingEl) loadingEl.classList.add("hidden");
     
 </script>
 
+<script>
+/* =========================
+   PRODUCT FORM CONTROL
+========================= */
+
+let editIndex = null;
+
+function openAddForm() {
+  editIndex = null;
+
+  document.getElementById("formTitle").textContent = "เพิ่มสินค้า";
+  ["f_id","f_name","f_price","f_stock","f_category"].forEach(id => {
+    document.getElementById(id).value = "";
+  });
+
+  document.getElementById("f_status").value = "พร้อมส่ง";
+  document.getElementById("f_image").value = "";
+
+  const hint = document.getElementById("currentImageHint");
+  if (hint) hint.classList.add("hidden");
+
+  document.getElementById("productFormModal").classList.remove("hidden");
+}
+
+function openEditForm(i) {
+  editIndex = i;
+  const p = state.products[i];
+
+  document.getElementById("formTitle").textContent = "แก้ไขสินค้า";
+  document.getElementById("f_id").value = p.id;
+  document.getElementById("f_name").value = p.name;
+  document.getElementById("f_price").value = p.price;
+  document.getElementById("f_stock").value = p.stock;
+  document.getElementById("f_category").value = p.category;
+  document.getElementById("f_status").value = p.status;
+
+  const hint = document.getElementById("currentImageHint");
+  if (hint) {
+    p.image ? hint.classList.remove("hidden") : hint.classList.add("hidden");
+  }
+
+  document.getElementById("productFormModal").classList.remove("hidden");
+}
+
+/* hook เมนู ➕ */
+if (typeof menuAddProduct !== "undefined") {
+  menuAddProduct.addEventListener("click", () => {
+    closeMenu();
+    openAddForm();
+  });
+}
+</script>
+  
+  
   <script>
   // =====================
   // ADD PRODUCT FLOW
