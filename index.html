@@ -236,9 +236,11 @@
 .card img {
   width: 100%;
   height: 180px;
-  object-fit: cover;
+  object-fit: contain;   /* ✅ จาก cover → contain */
+  background: #000;      /* (ไม่บังคับ แต่สวย) */
   border-radius: 14px;
 }
+
 
 /* ========================= */
 /* MODAL */
