@@ -474,41 +474,45 @@ button.input {
 <!-- ===================== -->
 <script>
   async function apiRequest(action, payload = {}) {
-    state.loading = true;
-    state.error = null;
+  state.loading = true;
+  document.getElementById("globalLoading").classList.remove("hidden");
 
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action,
-          payload,
-          role: state.role
-        })
-      });
-
-      if (!res.ok) {
-        throw new Error("Network error");
-      }
-
-      const data = await res.json();
-
-      if (!data.success) {
-        throw new Error(data.message || "API error");
-      }
-
-      return data.data;
-
-    } catch (err) {
-      console.error(err);
-      state.error = err.message;
-      return null;
-
-    } finally {
-      state.loading = false;
+  try {
+    // guard admin session
+    if (state.role === "admin" && !hasAdminAuth()) {
+      throw new Error("Session หมดอายุ กรุณา login ใหม่");
     }
+
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify({
+        action,
+        payload
+      })
+    });
+
+    const text = await res.text();
+    const data = JSON.parse(text);
+
+    if (!data.success) {
+      throw new Error(data.message || "API error");
+    }
+
+    return data.data;
+
+  } catch (err) {
+    document.getElementById("globalErrorText").textContent = err.message;
+    document.getElementById("globalError").classList.remove("hidden");
+    return null;
+
+  } finally {
+    state.loading = false;
+    document.getElementById("globalLoading").classList.add("hidden");
   }
+}
 
   // =====================
   // API WRAPPERS
