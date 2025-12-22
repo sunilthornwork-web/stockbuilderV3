@@ -355,6 +355,9 @@ button.input {
   const API_URL = "https://script.google.com/macros/s/AKfycbwjFBf3miPNv0MkFujq9QcERqYQfDtevWskK0RriK1epnencJW0NPmpvURmHMx9QAc-/exec";
 </script>
 
+  <script>
+let editIndex = null;
+</script>
   <!-- ===================== -->
   <!-- APP STATE -->
   <!-- ===================== -->
@@ -544,8 +547,8 @@ if (loadingEl) loadingEl.classList.add("hidden");
     return await apiRequest("updateStock", { id, stock });
   }
 
-  async function uploadImage(file, sku) {
-  if (!file || !sku) return "";
+  async function uploadImage(file, productId) {
+  if (!file || !productId) return "";
 
   const base64 = await new Promise(resolve => {
     const reader = new FileReader();
@@ -554,10 +557,10 @@ if (loadingEl) loadingEl.classList.add("hidden");
   });
 
   const res = await apiRequest("uploadImage", {
-    filename: file.name,
+    filename: `${productId}.png`,
     mimeType: file.type,
     data: base64,
-    sku: sku
+    productId
   });
 
   return res ? res.imageUrl : "";
@@ -630,10 +633,8 @@ if (loadingEl) loadingEl.classList.add("hidden");
    PRODUCT FORM CONTROL
 ========================= */
 
-editIndex = null;
-
-function openAddForm() {
-  editIndex = null;
+unction openAddForm() {
+  editIndex = null; // ✅ RESET STATE
 
   document.getElementById("formTitle").textContent = "เพิ่มสินค้า";
   ["f_id","f_name","f_price","f_stock","f_category"].forEach(id => {
@@ -677,47 +678,7 @@ if (typeof menuAddProduct !== "undefined") {
   });
 }
 </script>
-  
-  
-  <script>
-  // =====================
-  // ADD PRODUCT FLOW
-  // =====================
-
-  let editIndex = null;
-
-  function openAddForm() {
-    editIndex = null;
-
-    document.getElementById("formTitle").textContent = "เพิ่มสินค้า";
-
-    ["f_id","f_name","f_price","f_stock","f_category"].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = "";
-    });
-
-    const status = document.getElementById("f_status");
-    if (status) status.value = "พร้อมส่ง";
-
-    const imageInput = document.getElementById("f_image");
-    if (imageInput) imageInput.value = "";
-
-    const hint = document.getElementById("currentImageHint");
-    if (hint) hint.classList.add("hidden");
-
-    document.getElementById("productFormModal").classList.remove("hidden");
-  }
-
-  // hook menu ➕ เพิ่มสินค้า
-  if (typeof menuAddProduct !== "undefined") {
-    menuAddProduct.addEventListener("click", () => {
-      closeMenu();
-      openAddForm();
-    });
-  }
-</script>
-
-  
+    
 <script>
   document.getElementById("searchInput").addEventListener("input", renderProducts);
   document.getElementById("categoryFilter").addEventListener("change", renderProducts);
@@ -784,72 +745,56 @@ document.addEventListener("DOMContentLoaded", () => {
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  
   const saveBtn = document.getElementById("saveProductBtn");
-  if (!saveBtn) return; // guard กัน crash
+  if (!saveBtn) return;
 
   saveBtn.addEventListener("click", async () => {
-    const imageInput = document.getElementById("f_image");
-const imageInput = document.getElementById("f_image");
-const imageFile =
-  imageInput &&
-  imageInput.files &&
-  imageInput.files.length > 0
-    ? imageInput.files[0]
-    : null;
+ 
+  const imageFile = document.getElementById("f_image")?.files?.[0];
+  const productId = f_id.value.trim();
 
+  let imageUrl = "";
 
-// 1️⃣ ดึง id มาก่อน
-const productId = f_id.value.trim();
-let imageUrl = "";
+  // edit → ใช้รูปเดิมก่อน
+  if (editIndex !== null) {
+    imageUrl = state.products[editIndex]?.image || "";
+  }
 
-// 2️⃣ ถ้าเป็น edit → ใช้รูปเดิมก่อน
-if (editIndex !== null) {
-  imageUrl = state.products[editIndex]?.image || "";
-}
+  // ถ้ามีรูปใหม่ → upload และแทนที่
+  if (imageFile) {
+    imageUrl = await uploadImage(imageFile, productId);
+  }
 
-if (imageFile && imageFile.name && imageFile.type) {
-  imageUrl = await uploadImage(imageFile);
-}
-    
+  const product = {
+    id: productId,
+    name: f_name.value.trim(),
+    price: Number(f_price.value),
+    stock: Number(f_stock.value),
+    category: f_category.value.trim(),
+    status: f_status.value,
+    image: imageUrl
+  };
 
-// 3️⃣ ถ้ามีรูปใหม่ → upload และแทนที่
-if (imageFile) {
-  imageUrl = await uploadImage(imageFile, productId);
-}
+  if (!product.id || !product.name) {
+    formError.classList.remove("hidden");
+    return;
+  }
 
-// 4️⃣ ค่อยสร้าง product
-const product = {
-  id: productId,
-  name: f_name.value.trim(),
-  price: Number(f_price.value),
-  stock: Number(f_stock.value),
-  category: f_category.value.trim(),
-  status: f_status.value,
-  image: imageUrl
-};
+  if (product.price < 0 || product.stock < 0) {
+    formError.textContent = "ราคาและจำนวนต้องไม่ติดลบ";
+    formError.classList.remove("hidden");
+    return;
+  }
 
-    if (!product.id || !product.name) {
-      formError.classList.remove("hidden");
-      return;
-    }
+  if (editIndex === null) {
+    await apiAddProduct(product);
+  } else {
+    await apiUpdateProduct(product);
+  }
 
-    if (product.price < 0 || product.stock < 0) {
-      formError.textContent = "ราคาและจำนวนต้องไม่ติดลบ";
-      formError.classList.remove("hidden");
-      return;
-    }
-
-    if (editIndex === null) {
-      await apiAddProduct(product);
-    } else {
-      await apiUpdateProduct(product);
-    }
-
-    await apiListProducts();
-    imageInput.value = "";
-    document.getElementById("productFormModal").classList.add("hidden");
-  });
+  await apiListProducts();
+  document.getElementById("productFormModal").classList.add("hidden");
+ });
 });
 </script>
   
