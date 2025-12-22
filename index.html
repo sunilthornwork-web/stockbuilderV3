@@ -784,36 +784,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  let editIndex = null;
-
+  
   const saveBtn = document.getElementById("saveProductBtn");
   if (!saveBtn) return; // guard กัน crash
 
   saveBtn.addEventListener("click", async () => {
     const imageInput = document.getElementById("f_image");
-    const imageFile = imageInput?.files?.[0];
+const imageFile = imageInput?.files?.[0];
 
-    let imageUrl = "";
+// 1️⃣ ดึง id มาก่อน
+const productId = f_id.value.trim();
+let imageUrl = "";
 
-    // แก้ไขสินค้า → ใช้รูปเดิมก่อน
-    if (editIndex !== null) {
-      imageUrl = state.products[editIndex]?.image || "";
-    }
+// 2️⃣ ถ้าเป็น edit → ใช้รูปเดิมก่อน
+if (editIndex !== null) {
+  imageUrl = state.products[editIndex]?.image || "";
+}
 
-    // ถ้าเลือกไฟล์ใหม่ → upload
-    if (imageFile) {
-      imageUrl = await uploadImage(imageFile, product.id);
-    }
+// 3️⃣ ถ้ามีรูปใหม่ → upload และแทนที่
+if (imageFile) {
+  imageUrl = await uploadImage(imageFile, productId);
+}
 
-    const product = {
-      id: f_id.value.trim(),
-      name: f_name.value.trim(),
-      price: Number(f_price.value),
-      stock: Number(f_stock.value),
-      category: f_category.value.trim(),
-      status: f_status.value,
-      image: imageUrl
-    };
+// 4️⃣ ค่อยสร้าง product
+const product = {
+  id: productId,
+  name: f_name.value.trim(),
+  price: Number(f_price.value),
+  stock: Number(f_stock.value),
+  category: f_category.value.trim(),
+  status: f_status.value,
+  image: imageUrl
+};
 
     if (!product.id || !product.name) {
       formError.classList.remove("hidden");
