@@ -643,17 +643,24 @@ function normalizeDriveLink(url) {
 </script>
 
   <script>
+document.addEventListener("DOMContentLoaded", () => {
   const loginModal = document.getElementById("loginModal");
   const loginBtn = document.getElementById("loginBtn");
   const loginError = document.getElementById("loginError");
 
+  if (!loginModal) return; // guard กัน crash
+
   // Close login modal on backdrop
-  loginModal.querySelector(".modal-backdrop").addEventListener("click", () => {
-    loginModal.classList.add("hidden");
-  });
+  const backdrop = loginModal.querySelector(".modal-backdrop");
+  if (backdrop) {
+    backdrop.addEventListener("click", () => {
+      loginModal.classList.add("hidden");
+    });
+  }
 
   loginBtn.addEventListener("click", async () => {
     loginError.classList.add("hidden");
+
     const username = document.getElementById("loginUser").value.trim();
     const password = document.getElementById("loginPass").value.trim();
 
@@ -671,15 +678,15 @@ function normalizeDriveLink(url) {
       return;
     }
 
-    // success
     localStorage.setItem("adminToken", res.token);
     localStorage.setItem("role", "admin");
     state.role = "admin";
+
     updateMenu();
     renderUI();
     loginModal.classList.add("hidden");
   });
-
+});
 </script>
 
 <script>
