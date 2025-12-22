@@ -790,7 +790,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   saveBtn.addEventListener("click", async () => {
     const imageInput = document.getElementById("f_image");
-const imageFile = imageInput?.files?.[0];
+const imageInput = document.getElementById("f_image");
+const imageFile =
+  imageInput &&
+  imageInput.files &&
+  imageInput.files.length > 0
+    ? imageInput.files[0]
+    : null;
+
 
 // 1️⃣ ดึง id มาก่อน
 const productId = f_id.value.trim();
