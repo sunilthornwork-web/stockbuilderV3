@@ -405,9 +405,13 @@ let editIndex = null;
     const cat = document.getElementById("categoryFilter").value;
 
     let items = state.products.filter(p =>
-      (!q || p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q)) &&
-      (!cat || p.category === cat)
-    );
+  (!q ||
+    String(p.name).toLowerCase().includes(q) ||
+    String(p.id).toLowerCase().includes(q)
+  ) &&
+  (!cat || p.category === cat)
+);
+
 
       if (items.length === 0) {
     list.innerHTML = `<div class="box placeholder">ไม่พบสินค้า</div>`;
