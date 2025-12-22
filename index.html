@@ -264,7 +264,17 @@
   padding: 16px;
   overflow-y: auto;
 }
-   
+
+  /* ========================= */
+/* BUTTON */
+button.input {
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #020617;
+  font-weight: 700;
+  border: none;
+}
+
  
  </style>
 </head>
@@ -528,12 +538,10 @@
   document.querySelector(".menu-backdrop").addEventListener("click", closeMenu);
 
   menuLogin.addEventListener("click", () => {
-    state.role = "admin";
-    localStorage.setItem("role", "admin");
-    updateMenu();
-    renderUI();
-    closeMenu();
-  });
+  closeMenu();
+  document.getElementById("loginModal").classList.remove("hidden");
+});
+
 
   menuLogout.addEventListener("click", () => {
     state.role = "viewer";
@@ -582,7 +590,64 @@
     });
   });
 </script>
-  
+
+  <script>
+  const loginModal = document.getElementById("loginModal");
+  const loginBtn = document.getElementById("loginBtn");
+  const loginError = document.getElementById("loginError");
+
+  // Close login modal on backdrop
+  loginModal.querySelector(".modal-backdrop").addEventListener("click", () => {
+    loginModal.classList.add("hidden");
+  });
+
+  loginBtn.addEventListener("click", async () => {
+    loginError.classList.add("hidden");
+    const username = document.getElementById("loginUser").value.trim();
+    const password = document.getElementById("loginPass").value.trim();
+
+    if (!username || !password) {
+      loginError.textContent = "กรุณากรอกข้อมูลให้ครบ";
+      loginError.classList.remove("hidden");
+      return;
+    }
+
+    const res = await apiLogin(username, password);
+
+    if (!res || !res.token) {
+      loginError.textContent = "เข้าสู่ระบบไม่สำเร็จ";
+      loginError.classList.remove("hidden");
+      return;
+    }
+
+    // success
+    localStorage.setItem("adminToken", res.token);
+    state.role = "admin";
+    updateMenu();
+    renderUI();
+    loginModal.classList.add("hidden");
+  });
+
+  // Guard: ถ้าไม่มี token ห้ามเข้า Admin
+  function hasAdminAuth() {
+    return !!localStorage.getItem("adminToken");
+  }
+
+  // Override renderUI guard
+  const _renderUI = renderUI;
+  renderUI = function () {
+    if (state.role === "admin" && !hasAdminAuth()) {
+      state.role = "viewer";
+    }
+    _renderUI();
+  };
+
+  // Logout clear token
+  menuLogout.addEventListener("click", () => {
+    localStorage.removeItem("adminToken");
+  });
+</script>
+
   <!-- ===================== -->
 <!-- PRODUCT DETAIL MODAL -->
 <!-- ===================== -->
@@ -591,6 +656,26 @@
   <div class="modal-content" id="modalContent"></div>
 </div>
 
+<!-- ===================== -->
+<!-- ADMIN LOGIN MODAL -->
+<!-- ===================== -->
+<div id="loginModal" class="modal hidden">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content">
+    <h3>Admin Login</h3>
+    <div class="box">
+      <input id="loginUser" class="input" placeholder="Username" />
+    </div>
+    <div class="box">
+      <input id="loginPass" class="input" type="password" placeholder="Password" />
+    </div>
+    <div class="box">
+      <button id="loginBtn" class="input">เข้าสู่ระบบ</button>
+    </div>
+    <div id="loginError" class="placeholder hidden">เข้าสู่ระบบไม่สำเร็จ</div>
+  </div>
+</div>
+  
 
 </body>
 </html>
