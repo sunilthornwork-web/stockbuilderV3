@@ -67,6 +67,12 @@
       color: var(--text);
     }
 
+    button.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+
     .hidden {
       display: none !important;
     }
@@ -715,6 +721,7 @@
   <!-- ===============================
        RENDER FUNCTIONS
        =============================== -->
+  
   <script>
   function renderCartSummary() {
     const summary = document.getElementById("cart-summary-text");
@@ -831,10 +838,20 @@ badge.textContent = totalQty;
       box.appendChild(div);
     });
 
-    // 🔴 CHANGED: update summary ทุกครั้ง
+    // 🔴 CHANGED: update summary + export button
     renderCartSummary();
+    updateExportButton();
   }
 </script>
+
+  <script>
+  function updateExportButton() {
+    const btn = document.getElementById("btn-export-png");
+    if (!btn) return;
+    btn.disabled = state.cart.length === 0;
+  }
+</script>
+
 
   <script>
   function renderOrderSheet() {
@@ -853,7 +870,11 @@ badge.textContent = totalQty;
       `;
       body.appendChild(tr);
     });
+  
+    // 🔴 CHANGED: UX GUARD – update export button
+    updateExportButton();
   }
+
 </script>
 
 
@@ -957,8 +978,12 @@ badge.textContent = totalQty;
 
 <script>
   document.getElementById("btn-export-png").onclick = () => {
-    const node = document.getElementById("order-sheet");
+    const exportBtn = document.getElementById("btn-export-png");
 
+    // 🔴 CHANGED: เริ่ม export → disable แบบ iOS
+    exportBtn.classList.add("loading");
+
+    const node = document.getElementById("order-sheet");
     const rect = node.getBoundingClientRect();
     const scale = 2;
 
@@ -980,17 +1005,31 @@ badge.textContent = totalQty;
     const img = new Image();
     img.onload = () => {
       ctx.drawImage(img, 0, 0);
+
       const link = document.createElement("a");
       link.download = "order.png";
       link.href = canvas.toDataURL("image/png");
       link.click();
+
+      // 🔴 CHANGED: export เสร็จ → คืนสถานะปุ่ม
+      exportBtn.classList.remove("loading");
+
+      // 🔴 UX CONFIRM
+      setTimeout(() => {
+        if (confirm("สร้างใบสั่งซื้อเรียบร้อย\nต้องการล้างตะกร้าเพื่อเริ่มใหม่หรือไม่?")) {
+          state.cart = [];
+          renderCartIcon();
+          updateExportButton();
+
+          document.getElementById("order-preview").classList.add("hidden");
+          document.getElementById("viewer-view").classList.remove("hidden");
+        }
+      }, 100);
     };
 
     img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(data);
   };
 </script>
-
-
 
 
   <!-- ===============================
