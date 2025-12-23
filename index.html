@@ -414,6 +414,42 @@
       to { transform: translateY(0); opacity: 1; }
     }
 
+        /* ===============================
+       Cart Item Control
+       =============================== */
+    .cart-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .cart-info {
+      flex: 1;
+    }
+
+    .cart-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cart-actions button {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.06);
+      color: var(--text);
+      font-size: 18px;
+      box-shadow: none;
+    }
+
+    .cart-actions .remove {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
   </style>
 
 </head>
@@ -475,6 +511,14 @@
     <div class="nav-action" id="btn-back-cart">‹</div>
     <div class="nav-title">ตะกร้า</div>
     <div class="nav-spacer"></div>
+  </div>
+
+        <!-- Cart Summary -->
+  <div class="card" id="cart-summary-box">
+    <div><strong>สรุปรายการ</strong></div>
+    <div class="muted" id="cart-summary-text">
+      -
+    </div>
   </div>
 
   <div id="cart-items"></div>
@@ -608,8 +652,9 @@
     <label>ผู้สั่ง</label>
     <input type="text" placeholder="ชื่อผู้สั่ง" />
 
-    <button>เพิ่มเข้าตะกร้า</button>
-    <button class="secondary">ยกเลิก</button>
+    <button id="btn-add-to-cart">เพิ่มเข้าตะกร้า</button>
+<button class="secondary">ยกเลิก</button>
+
   </div>
 </div>
   
@@ -650,6 +695,27 @@
        RENDER FUNCTIONS
        =============================== -->
   <script>
+  function renderCartSummary() {
+    const summary = document.getElementById("cart-summary-text");
+    const btnOrder = document.getElementById("btn-go-order");
+
+    const totalItems = state.cart.length;
+    const totalQty = state.cart.reduce((sum, i) => sum + i.qty, 0);
+
+    if (totalItems === 0) {
+      summary.textContent = "ยังไม่มีสินค้าในตะกร้า";
+      btnOrder.disabled = true;           // 🔴 GUARD
+      return;
+    }
+
+    summary.textContent =
+      `จำนวน ${totalItems} รายการ · รวม ${totalQty} ชิ้น`;
+
+    btnOrder.disabled = false;
+  }
+</script>
+
+  <script>
   function renderProducts() {
     const list = document.getElementById("product-list");
     list.innerHTML = "";
@@ -689,35 +755,67 @@
     }
 
     icon.classList.remove("hidden");
-    badge.textContent = state.cart.length;
+    const totalQty = state.cart.reduce((sum, i) => sum + i.qty, 0);
+badge.textContent = totalQty;
+
   }
 </script>
 
-  <script>
+ <script>
   function renderCart() {
     const box = document.getElementById("cart-items");
     box.innerHTML = "";
 
+    // 🔴 GUARD: cart ว่าง → กลับ viewer
     if (state.cart.length === 0) {
-      box.innerHTML = `
-        <div class="card empty-state">
-          <div class="empty-title">ตะกร้าว่าง</div>
-        </div>`;
+      document.getElementById("cart-view").classList.add("hidden");
+      document.getElementById("viewer-view").classList.remove("hidden");
+      renderCartIcon();
       return;
     }
 
-    state.cart.forEach(item => {
+    state.cart.forEach((item, index) => {
       const div = document.createElement("div");
-      div.className = "card";
+      div.className = "card cart-item";
+
       div.innerHTML = `
-        <strong>${item.name}</strong><br/>
-        จำนวน: ${item.qty}<br/>
-        ผู้สั่ง: ${item.user}
+        <div class="cart-info">
+          <strong>${item.name}</strong><br/>
+          ผู้สั่ง: ${item.user}
+        </div>
+
+        <div class="cart-actions">
+          <button data-action="decrease">−</button>
+          <span>${item.qty}</span>
+          <button data-action="increase">+</button>
+          <button class="remove" data-action="remove">×</button>
+        </div>
       `;
+
+      div.onclick = (e) => {
+        const action = e.target.getAttribute("data-action");
+        if (!action) return;
+
+        if (action === "increase") item.qty++;
+        if (action === "decrease") {
+          item.qty--;
+          if (item.qty <= 0) state.cart.splice(index, 1);
+        }
+        if (action === "remove") state.cart.splice(index, 1);
+
+        renderCart();
+        renderCartIcon();
+      };
+
       box.appendChild(div);
     });
+
+    // 🔴 CHANGED: update summary ทุกครั้ง
+    renderCartSummary();
   }
 </script>
+
+
 
 
   <!-- ===============================
@@ -727,7 +825,7 @@
   const sheet = document.getElementById("add-to-cart-sheet");
   const qtyInput = sheet.querySelector('input[type="number"]');
   const userInput = sheet.querySelector('input[type="text"]');
-  const addBtn = sheet.querySelector("button");
+  const addBtn = document.getElementById("btn-add-to-cart"); // 🔴 CHANGED
   const cancelBtn = sheet.querySelector(".secondary");
 
   function openAddToCartSheet(product) {
@@ -737,51 +835,65 @@
     sheet.classList.remove("hidden");
   }
 
-  function closeSheet() {
+    function closeSheet() {
     sheet.classList.add("hidden");
     state.selectedProduct = null;
+
+    // 🔴 OPTIONAL: defensive clear
+    qtyInput.value = "";
+    userInput.value = "";
   }
 
-  addBtn.onclick = () => {
-    const qty = Number(qtyInput.value);
-    const user = userInput.value.trim();
+ addBtn.onclick = () => {
+  const qty = Number(qtyInput.value);
+  const user = userInput.value.trim();
 
-    if (!qty || qty <= 0 || !user) {
-      alert("กรอกจำนวนและชื่อผู้สั่ง");
-      return;
-    }
+  if (!qty || qty <= 0 || !user) {
+    alert("กรอกจำนวนและชื่อผู้สั่ง");
+    return;
+  }
 
+  const product = state.selectedProduct;
+
+  // 🔴 NORMALIZE: หา item เดิม (สินค้าเดียวกัน + ผู้สั่งเดียวกัน)
+  const existing = state.cart.find(
+    i => i.productId === product.id && i.user === user
+  );
+
+  if (existing) {
+    existing.qty += qty; // รวมจำนวน
+  } else {
     state.cart.push({
-      productId: state.selectedProduct.id,
-      name: state.selectedProduct.name,
+      productId: product.id,
+      name: product.name,
       qty,
       user
     });
+  }
 
-    closeSheet();
-    renderCartIcon();
-  };
+  closeSheet();
+  renderCartIcon();
+};
+
 
   cancelBtn.onclick = closeSheet;
 </script>
 
   <script>
+    document.getElementById("btn-go-order").onclick = () => {
+  if (state.cart.length === 0) return; // 🔒 EXTRA GUARD
+  document.getElementById("cart-view").classList.add("hidden");
+  document.getElementById("order-preview").classList.remove("hidden");
+};
+
   document.getElementById("cart-icon").onclick = () => {
+    if (state.cart.length === 0) return; // 🔴 GUARD
     document.getElementById("viewer-view").classList.add("hidden");
     document.getElementById("cart-view").classList.remove("hidden");
     renderCart();
   };
-
-  document.getElementById("btn-back-cart").onclick = () => {
-    document.getElementById("cart-view").classList.add("hidden");
-    document.getElementById("viewer-view").classList.remove("hidden");
-  };
-
-  document.getElementById("btn-go-order").onclick = () => {
-    document.getElementById("cart-view").classList.add("hidden");
-    document.getElementById("order-preview").classList.remove("hidden");
-  };
 </script>
+
 
 
 
