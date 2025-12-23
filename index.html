@@ -276,26 +276,50 @@
 
 .modal-content {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  max-height: 90%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  width: calc(100% - 32px);
+  max-width: 420px;
+  max-height: 85vh;
+
   background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  border-radius: 20px 20px 0 0;
+  backdrop-filter: blur(18px);
+  border-radius: 22px;
   padding: 16px;
+
   overflow-y: auto;
 }
 
-/* รูปในหน้ารายละเอียดสินค้า (Modal) */
+
 .modal-content img {
   width: 100%;
-  max-height: 60vh;      /* ⭐ สำคัญ: จำกัดความสูง */
-  object-fit: contain;  /* ⭐ แสดงรูปเต็ม ไม่ครอป */
-  background: rgba(255,255,255,0.05);
-  border-radius: 14px;
+  max-height: 45vh;     /* ไม่สูงเกิน */
+  object-fit: contain; /* ไม่ครอป */
+  border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  margin-bottom: 12px;
 }
-   
+
+ .modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+
+  border: none;
+  cursor: pointer;
+
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+}
+  
 
   /* ========================= */
 /* BUTTON */
@@ -487,13 +511,17 @@ let editIndex = null;
     const modal = document.getElementById("productModal");
     const c = document.getElementById("modalContent");
     c.innerHTML = `
-      <img src="${p.image || ""}" />
-      <h3>${p.name}</h3>
-      <p>SKU: ${p.id}</p>
-      <p>ราคา: ฿${p.price}</p>
-      <p>จำนวน: ${p.stock}</p>
-      <p>สถานะ: ${p.status}</p>
-    `;
+  <button class="modal-close" onclick="closeProductModal()">✕</button>
+
+  <img src="${p.image || ""}" />
+
+  <h3>${p.name}</h3>
+  <p>SKU: ${p.id}</p>
+  <p>ราคา: ฿${p.price}</p>
+  <p>จำนวน: ${p.stock}</p>
+  <p>สถานะ: ${p.status}</p>
+`;
+
     modal.classList.remove("hidden");
   }
 
@@ -506,6 +534,17 @@ let editIndex = null;
  function openDetailByIndex(i) {
   openDetail(state.products[i]);
  }
+
+ function closeProductModal() {
+  document.getElementById("productModal").classList.add("hidden");
+}
+
+  document.addEventListener("click", e => {
+  if (e.target.classList.contains("modal-backdrop")) {
+    document.getElementById("productModal").classList.add("hidden");
+  }
+});
+  
 
 </script>
   
