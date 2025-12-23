@@ -363,21 +363,29 @@ button.input {
       </div>
 
       <!-- SEARCH -->
-<form autocomplete="off">
-  <div class="box">
-    <input
-      id="searchInput"
-      class="input"
-      placeholder="ค้นหาสินค้า / SKU"
-      autocomplete="off"
-      autocorrect="off"
-      autocapitalize="off"
-      spellcheck="false"
-      name="search-stockbuilder"
-    />
-  </div>
-</form>
-
+<div class="box" style="position:relative">
+  <input
+    id="searchInput"
+    class="input"
+    placeholder="ค้นหาสินค้า / SKU"
+    autocomplete="off"
+  />
+  <button
+    id="clearSearchBtn"
+    class="hidden"
+    style="
+      position:absolute;
+      right:12px;
+      top:50%;
+      transform:translateY(-50%);
+      background:none;
+      border:none;
+      color:#aaa;
+      font-size:18px;
+      cursor:pointer;
+    "
+  >✕</button>
+</div>
 
 
       <!-- FILTER (DROPDOWN) -->
@@ -610,14 +618,6 @@ if (loadingEl) loadingEl.classList.add("hidden");
   // API WRAPPERS
   // =====================
 
-  async function apiListProducts() {
-    const products = await apiRequest("list");
-    if (products) {
-      state.products = products;
-      renderUI();
-    }
-  }
-
   async function apiLogin(username, password) {
     return await apiRequest("login", { username, password });
   }
@@ -768,21 +768,45 @@ if (typeof menuAddProduct !== "undefined") {
 </script>
     
 <script>
-  document.getElementById("searchInput").addEventListener("input", renderProducts);
-  document.getElementById("categoryFilter").addEventListener("change", renderProducts);
+const searchInput = document.getElementById("searchInput");
+const clearBtn = document.getElementById("clearSearchBtn");
+const categoryFilter = document.getElementById("categoryFilter");
 
-  // Load once
-  apiListProducts().then(() => {
-    const cats = [...new Set(state.products.map(p => p.category))];
-    const sel = document.getElementById("categoryFilter");
-    cats.forEach(c => {
-      const o = document.createElement("option");
-      o.value = c;
-      o.textContent = c;
-      sel.appendChild(o);
-    });
+// พิมพ์ search → filter + show ❌
+searchInput.addEventListener("input", () => {
+  clearBtn.classList.toggle("hidden", !searchInput.value);
+  renderProducts();
+});
+
+// เปลี่ยน category → reset search
+categoryFilter.addEventListener("change", () => {
+  searchInput.value = "";
+  clearBtn.classList.add("hidden");
+  renderProducts();
+});
+
+// กด ❌ → reset ทุกอย่าง
+clearBtn.addEventListener("click", () => {
+  searchInput.value = "";
+  categoryFilter.value = "";
+  clearBtn.classList.add("hidden");
+  renderProducts();
+});
+
+// Load categories ครั้งเดียว
+apiListProducts().then(() => {
+  const cats = [...new Set(state.products.map(p => p.category))];
+  const sel = document.getElementById("categoryFilter");
+  cats.forEach(c => {
+    const o = document.createElement("option");
+    o.value = c;
+    o.textContent = c;
+    sel.appendChild(o);
   });
+});
 </script>
+
+
 
   <script>
 document.addEventListener("DOMContentLoaded", () => {
