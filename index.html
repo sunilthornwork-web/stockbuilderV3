@@ -470,6 +470,18 @@
            
     </section>
 
+    <section id="cart-view" class="hidden">
+  <div class="nav-bar">
+    <div class="nav-action" id="btn-back-cart">‹</div>
+    <div class="nav-title">ตะกร้า</div>
+    <div class="nav-spacer"></div>
+  </div>
+
+  <div id="cart-items"></div>
+
+  <button id="btn-go-order">สร้างใบสั่งซื้อ</button>
+</section>
+
     <!-- ===============================
          ORDER PREVIEW (PNG EXPORT)
          =============================== -->
@@ -605,14 +617,20 @@
        GLOBAL STATE
        =============================== -->
   <script>
-    const state = {
-      products: [],
-      cart: [],
-      admin: {
-        loggedIn: false
-      }
-    };
-  </script>
+  const state = {
+    products: [
+      // mock data สำหรับ STEP 3
+      { id: 1, name: "สินค้า A", stock: 120 },
+      { id: 2, name: "สินค้า B", stock: 80 }
+    ],
+    cart: [],
+    selectedProduct: null,
+    admin: {
+      loggedIn: false
+    }
+  };
+</script>
+
 
   <!-- ===============================
        API LAYER (Google Apps Script)
@@ -632,20 +650,139 @@
        RENDER FUNCTIONS
        =============================== -->
   <script>
-    function renderProducts() {}
-    function renderCart() {}
-    function renderOrderSheet() {}
-    function renderAdminProducts() {}
-    function renderStockHistory() {}
-  </script>
+  function renderProducts() {
+    const list = document.getElementById("product-list");
+    list.innerHTML = "";
+
+    if (state.products.length === 0) {
+      list.innerHTML = `
+        <div class="card empty-state">
+          <div class="empty-icon">📦</div>
+          <div class="empty-title">ยังไม่มีสินค้า</div>
+        </div>`;
+      return;
+    }
+
+    state.products.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "product-card selectable";
+      card.innerHTML = `
+        <div class="product-info">
+          <div class="product-name">${p.name}</div>
+          <div class="product-stock">คงเหลือ ${p.stock} ชิ้น</div>
+        </div>
+        <div class="product-action">›</div>
+      `;
+
+      card.onclick = () => openAddToCartSheet(p);
+      list.appendChild(card);
+    });
+  }
+
+  function renderCartIcon() {
+    const icon = document.getElementById("cart-icon");
+    const badge = icon.querySelector(".cart-badge");
+
+    if (state.cart.length === 0) {
+      icon.classList.add("hidden");
+      return;
+    }
+
+    icon.classList.remove("hidden");
+    badge.textContent = state.cart.length;
+  }
+</script>
+
+  <script>
+  function renderCart() {
+    const box = document.getElementById("cart-items");
+    box.innerHTML = "";
+
+    if (state.cart.length === 0) {
+      box.innerHTML = `
+        <div class="card empty-state">
+          <div class="empty-title">ตะกร้าว่าง</div>
+        </div>`;
+      return;
+    }
+
+    state.cart.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "card";
+      div.innerHTML = `
+        <strong>${item.name}</strong><br/>
+        จำนวน: ${item.qty}<br/>
+        ผู้สั่ง: ${item.user}
+      `;
+      box.appendChild(div);
+    });
+  }
+</script>
+
 
   <!-- ===============================
      VIEWER FLOW LOGIC
      =============================== -->
 <script>
-  // STEP 2: UI Only
-  // Order flow จะเริ่มใน STEP 3
+  const sheet = document.getElementById("add-to-cart-sheet");
+  const qtyInput = sheet.querySelector('input[type="number"]');
+  const userInput = sheet.querySelector('input[type="text"]');
+  const addBtn = sheet.querySelector("button");
+  const cancelBtn = sheet.querySelector(".secondary");
+
+  function openAddToCartSheet(product) {
+    state.selectedProduct = product;
+    qtyInput.value = "";
+    userInput.value = "";
+    sheet.classList.remove("hidden");
+  }
+
+  function closeSheet() {
+    sheet.classList.add("hidden");
+    state.selectedProduct = null;
+  }
+
+  addBtn.onclick = () => {
+    const qty = Number(qtyInput.value);
+    const user = userInput.value.trim();
+
+    if (!qty || qty <= 0 || !user) {
+      alert("กรอกจำนวนและชื่อผู้สั่ง");
+      return;
+    }
+
+    state.cart.push({
+      productId: state.selectedProduct.id,
+      name: state.selectedProduct.name,
+      qty,
+      user
+    });
+
+    closeSheet();
+    renderCartIcon();
+  };
+
+  cancelBtn.onclick = closeSheet;
 </script>
+
+  <script>
+  document.getElementById("cart-icon").onclick = () => {
+    document.getElementById("viewer-view").classList.add("hidden");
+    document.getElementById("cart-view").classList.remove("hidden");
+    renderCart();
+  };
+
+  document.getElementById("btn-back-cart").onclick = () => {
+    document.getElementById("cart-view").classList.add("hidden");
+    document.getElementById("viewer-view").classList.remove("hidden");
+  };
+
+  document.getElementById("btn-go-order").onclick = () => {
+    document.getElementById("cart-view").classList.add("hidden");
+    document.getElementById("order-preview").classList.remove("hidden");
+  };
+</script>
+
 
 
   <!-- ===============================
@@ -664,13 +801,13 @@
      =============================== -->
 <script>
   function initApp() {
-    // STEP 2: UI Only
     renderProducts();
-    // ❌ ยังไม่เรียก renderCart()
+    renderCartIcon();
   }
 
   initApp();
 </script>
+
 
 </body>
 </html>
