@@ -660,16 +660,17 @@
   </script>
 
   <!-- ===============================
-       INIT APP
-       =============================== -->
-  <script>
-    function initApp() {
-      // initial render
-      renderProducts();
-      renderCart();
-    }
+     INIT APP
+     =============================== -->
+<script>
+  function initApp() {
+    // STEP 2: UI Only
+    renderProducts();
+    // ❌ ยังไม่เรียก renderCart()
+  }
 
-    initApp();
-  </script>
+  initApp();
+</script>
+
 </body>
 </html>
