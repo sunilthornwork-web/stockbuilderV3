@@ -363,9 +363,19 @@ button.input {
       </div>
 
       <!-- SEARCH -->
+<!-- SEARCH -->
 <div class="box">
-  <input id="searchInput" class="input" placeholder="ค้นหาสินค้า / SKU" />
+  <input
+    id="searchInput"
+    class="input"
+    placeholder="ค้นหาสินค้า / SKU"
+    autocomplete="off"
+    autocorrect="off"
+    autocapitalize="off"
+    spellcheck="false"
+  />
 </div>
+
 
       <!-- FILTER (DROPDOWN) -->
 <div class="box">
@@ -872,7 +882,16 @@ document.addEventListener("DOMContentLoaded", () => {
  });
 });
 </script>
-  
+
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const search = document.getElementById("searchInput");
+  if (search) {
+    search.value = "";
+  }
+});
+</script>
+
 
   <!-- ===================== -->
 <!-- PRODUCT DETAIL MODAL -->
