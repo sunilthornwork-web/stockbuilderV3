@@ -427,11 +427,18 @@
     <section id="viewer-view">
 
             <!-- iOS Navigation Bar -->
-      <div class="nav-bar">
-        <div class="nav-action">🧺<span class="cart-badge hidden">0</span></div>
-        <div class="nav-title">สินค้า</div>
-        <div class="nav-action">⋯</div>
-      </div>
+      <!-- iOS Navigation Bar (Single Cart Source) -->
+<div class="nav-bar">
+  <div class="nav-action hidden" id="cart-icon">
+    🧺
+    <span class="cart-badge">0</span>
+  </div>
+
+  <div class="nav-title">สินค้า</div>
+
+  <div class="nav-action">⋯</div>
+</div>
+
 
       <h1 class="hidden">สินค้า</h1>
 
@@ -460,24 +467,7 @@
 
 
         <!-- render product cards here -->
-      
-
-      <!-- Cart Summary -->
-      <div id="cart-summary" class="card">
-        <div class="empty-state">
-          <div class="empty-icon">🧺</div>
-          <div class="empty-title">ตะกร้าว่าง</div>
-          <div class="empty-desc">
-            เลือกสินค้าเพื่อสร้างใบสั่งซื้อ
-          </div>
-        </div>
-
-        <button id="btn-create-order" disabled>
-          สร้างใบสั่งซื้อ
-        </button>
-      </div>
-
-      
+           
     </section>
 
     <!-- ===============================
@@ -650,19 +640,13 @@
   </script>
 
   <!-- ===============================
-       VIEWER FLOW LOGIC
-       =============================== -->
-  <script>
-    document.getElementById("btn-create-order").onclick = () => {
-      document.getElementById("viewer-view").classList.add("hidden");
-      document.getElementById("order-preview").classList.remove("hidden");
-    };
+     VIEWER FLOW LOGIC
+     =============================== -->
+<script>
+  // STEP 2: UI Only
+  // Order flow จะเริ่มใน STEP 3
+</script>
 
-    document.getElementById("btn-back-viewer").onclick = () => {
-      document.getElementById("order-preview").classList.add("hidden");
-      document.getElementById("viewer-view").classList.remove("hidden");
-    };
-  </script>
 
   <!-- ===============================
        ADMIN FLOW LOGIC
