@@ -100,28 +100,32 @@
     }
 
     /* ===============================
-       Product List
-       =============================== */
-    #product-list {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      margin-bottom: 20px;
-    }
+   Product List
+   =============================== */
+#product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 20px;
+}
 
-    .product-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      will-change: transform;
-      gap: 12px;
-      background: var(--card);
-      backdrop-filter: var(--blur);
-      -webkit-backdrop-filter: var(--blur);
-      border-radius: var(--radius-lg);
-      padding: 14px 16px;
-      box-shadow: var(--shadow-soft);
-          }
+.product-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  will-change: transform;
+  gap: 12px;
+  background: var(--card);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-soft);
+}
+
+.product-card.selectable {
+  cursor: pointer;
+}
 
     .product-info {
       flex: 1;
@@ -170,6 +174,18 @@
       width: 100%;
       margin-top: 10px;
     }
+
+        .cart-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: #ff3b30;
+      color: #fff;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 10px;
+    }
+
 
     /* ===============================
        Inputs (Admin)
@@ -370,6 +386,32 @@
       background: rgba(0,0,0,0.12);
     }
 
+        .sheet {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .sheet-card {
+      width: 100%;
+      max-width: 430px;
+      background: var(--card);
+      backdrop-filter: var(--blur);
+      border-radius: 24px 24px 0 0;
+      padding: 20px;
+      box-shadow: var(--shadow-card);
+      animation: slideUp 0.25s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
   </style>
 
 </head>
@@ -382,25 +424,38 @@
          =============================== -->
     <section id="viewer-view">
 
-      <!-- iOS Navigation Bar -->
+            <!-- iOS Navigation Bar -->
       <div class="nav-bar">
-        <div class="nav-spacer"></div>
+        <div class="nav-action">🧺<span class="cart-badge hidden">0</span></div>
         <div class="nav-title">สินค้า</div>
         <div class="nav-action">⋯</div>
       </div>
 
       <h1 class="hidden">สินค้า</h1>
 
-            <!-- Product List -->
-      <div id="product-list">
-        <div class="card empty-state">
-          <div class="empty-icon">📦</div>
-          <div class="empty-title">ยังไม่มีสินค้า</div>
-          <div class="empty-desc">
-            สินค้าจะปรากฏที่นี่เมื่อระบบพร้อมใช้งาน
-          </div>
-        </div>
-      </div>
+         <!-- Product List -->
+<div id="product-list">
+
+  <!-- Empty State (ใช้เมื่อยังไม่มีสินค้า) -->
+  <div class="card empty-state">
+    <div class="empty-icon">📦</div>
+    <div class="empty-title">ยังไม่มีสินค้า</div>
+    <div class="empty-desc">
+      สินค้าจะปรากฏที่นี่เมื่อระบบพร้อมใช้งาน
+    </div>
+  </div>
+
+  <!-- Product Card (ตัวอย่างสินค้า - UI เตรียมไว้) -->
+  <div class="product-card selectable hidden">
+    <div class="product-info">
+      <div class="product-name">ตัวอย่างสินค้า</div>
+      <div class="product-stock">คงเหลือ 120 ชิ้น</div>
+    </div>
+    <div class="product-action">›</div>
+  </div>
+
+</div>
+
 
         <!-- render product cards here -->
       
@@ -419,6 +474,8 @@
           สร้างใบสั่งซื้อ
         </button>
       </div>
+
+      
     </section>
 
     <!-- ===============================
@@ -528,6 +585,24 @@
           </div>
         </div>
       </div>
+
+      <!-- ===============================
+     Add to Cart Sheet (UI Only)
+     =============================== -->
+<div id="add-to-cart-sheet" class="sheet hidden">
+  <div class="sheet-card">
+    <h2>เพิ่มสินค้า</h2>
+
+    <label>จำนวนที่สั่ง</label>
+    <input type="number" placeholder="เช่น 10" />
+
+    <label>ผู้สั่ง</label>
+    <input type="text" placeholder="ชื่อผู้สั่ง" />
+
+    <button>เพิ่มเข้าตะกร้า</button>
+    <button class="secondary">ยกเลิก</button>
+  </div>
+</div>
 
     </section>
 
