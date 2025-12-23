@@ -259,6 +259,59 @@
       line-height: 1.4;
     }
 
+        /* ===============================
+       Admin Dashboard
+       =============================== */
+    .admin-section {
+      margin-bottom: 24px;
+    }
+
+    .admin-section-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--subtext);
+      margin: 0 0 8px 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .admin-card {
+      background: var(--card);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .admin-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .admin-row:last-child {
+      border-bottom: none;
+    }
+
+    .admin-row-label {
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .admin-row-desc {
+      font-size: 13px;
+      color: var(--subtext);
+      margin-top: 2px;
+    }
+
+    .admin-row-action {
+      font-size: 18px;
+      color: var(--subtext);
+    }
+
   </style>
 
 </head>
@@ -324,7 +377,7 @@
       <button id="btn-back-viewer">กลับ</button>
     </section>
 
-    <!-- ===============================
+        <!-- ===============================
          ADMIN FLOW
          =============================== -->
     <section id="admin-login" class="hidden">
@@ -335,31 +388,92 @@
       </div>
     </section>
 
+    <!-- 🔴 REPLACED: Admin Dashboard (UI Only) -->
     <section id="admin-dashboard" class="hidden">
-      <h1>Dashboard</h1>
 
-      <!-- Product CRUD -->
-      <div class="card">
-        <h3>สินค้า</h3>
-                <div id="admin-product-list">
+      <!-- Admin Navigation -->
+      <div class="nav-bar">
+        <div class="nav-spacer"></div>
+        <div class="nav-title">Admin</div>
+        <div class="nav-action">⋯</div>
+      </div>
+
+      <!-- ===============================
+           Product Management
+           =============================== -->
+      <div class="admin-section">
+        <div class="admin-section-title">Products</div>
+
+        <div class="admin-card">
+          <div class="admin-row">
+            <div>
+              <div class="admin-row-label">สินค้า</div>
+              <div class="admin-row-desc">เพิ่ม แก้ไข และลบสินค้า</div>
+            </div>
+            <div class="admin-row-action">›</div>
+          </div>
+
+          <div id="admin-product-list">
+            <div class="empty-state">
+              <div class="empty-icon">📦</div>
+              <div class="empty-title">ยังไม่มีสินค้า</div>
+              <div class="empty-desc">
+                เพิ่มสินค้าเพื่อเริ่มจัดการสต๊อก
+              </div>
+            </div>
+          </div>
+
+          <button id="btn-add-product" style="margin-top:12px;">
+            เพิ่มสินค้า
+          </button>
+        </div>
+      </div>
+
+      <!-- ===============================
+           Stock Movement
+           =============================== -->
+      <div class="admin-section">
+        <div class="admin-section-title">Stock</div>
+
+        <div class="admin-card">
+          <div class="admin-row">
+            <div>
+              <div class="admin-row-label">รับเข้า / ส่งออก</div>
+              <div class="admin-row-desc">บันทึกการเคลื่อนไหวสต๊อก</div>
+            </div>
+            <div class="admin-row-action">›</div>
+          </div>
+
           <div class="empty-state">
-            <div class="empty-icon">🛠</div>
-            <div class="empty-title">ยังไม่มีสินค้า</div>
+            <div class="empty-icon">🔄</div>
+            <div class="empty-title">ยังไม่มีรายการ</div>
             <div class="empty-desc">
-              เพิ่มสินค้าเพื่อเริ่มจัดการสต๊อก
+              ประวัติการรับเข้าและส่งออกจะแสดงที่นี่
             </div>
           </div>
         </div>
-
-
-      <!-- Stock Movement -->
-      <div class="card">
-        <h3>Stock Movement</h3>
-        <div id="stock-history"></div>
       </div>
+
+      <!-- ===============================
+           History
+           =============================== -->
+      <div class="admin-section">
+        <div class="admin-section-title">History</div>
+
+        <div class="admin-card">
+          <div class="empty-state">
+            <div class="empty-icon">🕘</div>
+            <div class="empty-title">ไม่มีประวัติ</div>
+            <div class="empty-desc">
+              การเคลื่อนไหวทั้งหมดจะถูกบันทึก
+            </div>
+          </div>
+        </div>
+      </div>
+
     </section>
 
-  </div>
+     </div> <!-- 🔴 FIX: close .app -->
 
   <!-- ===============================
        GLOBAL STATE
