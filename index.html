@@ -295,6 +295,24 @@
   background: rgba(255,255,255,0.05);
   border-radius: 14px;
 }
+
+/* ===== IMAGE LIGHTBOX ===== */
+.modal-content.image-only {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+  box-shadow: none;
+}
+
+.modal-content.image-only img {
+  max-width: 90%;
+  max-height: 75vh;   /* ⭐ คุมขนาดพอดีมือถือ */
+  object-fit: contain;
+  border-radius: 16px;
+  background: #000;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
    
 
   /* ========================= */
@@ -430,7 +448,10 @@ let editIndex = null;
 
     list.innerHTML = items.map((p, i) => `
        <div class="box card" onclick="openDetailByIndex(${i})">
-        <img src="${p.image || ""}" />
+  <img 
+    src="${p.image || ""}" 
+    onclick="event.stopPropagation(); openImage('${p.image}')"
+  />
         <div class="product-sku">SKU: ${p.id}</div>
         <div class="product-title-row">
           <div class="product-title">${p.name}</div>
@@ -506,6 +527,21 @@ let editIndex = null;
  function openDetailByIndex(i) {
   openDetail(state.products[i]);
  }
+
+ function openImage(src) {
+  const modal = document.getElementById("imageModal");
+  const img = document.getElementById("imagePreview");
+
+  img.src = src;
+  modal.classList.remove("hidden");
+}
+
+document.addEventListener("click", e => {
+  if (e.target.closest("#imageModal .modal-backdrop")) {
+    document.getElementById("imageModal").classList.add("hidden");
+  }
+});
+    
 
 </script>
   
@@ -842,6 +878,15 @@ document.addEventListener("DOMContentLoaded", () => {
   <div class="modal-backdrop"></div>
   <div class="modal-content" id="modalContent"></div>
 </div>
+
+<!-- IMAGE PREVIEW MODAL -->
+<div id="imageModal" class="modal hidden">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content image-only">
+    <img id="imagePreview" />
+  </div>
+</div>
+  
 
 <!-- ===================== -->
 <!-- ADMIN LOGIN MODAL -->
