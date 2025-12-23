@@ -287,6 +287,16 @@
   overflow-y: auto;
 }
 
+/* รูปในหน้ารายละเอียดสินค้า (Modal) */
+.modal-content img {
+  width: 100%;
+  max-height: 60vh;      /* ⭐ สำคัญ: จำกัดความสูง */
+  object-fit: contain;  /* ⭐ แสดงรูปเต็ม ไม่ครอป */
+  background: rgba(255,255,255,0.05);
+  border-radius: 14px;
+}
+   
+
   /* ========================= */
 /* BUTTON */
 button.input {
@@ -477,7 +487,7 @@ let editIndex = null;
     const modal = document.getElementById("productModal");
     const c = document.getElementById("modalContent");
     c.innerHTML = `
-      <img src="${p.image || ""}" style="width:100%;border-radius:14px" />
+      <img src="${p.image || ""}" />
       <h3>${p.name}</h3>
       <p>SKU: ${p.id}</p>
       <p>ราคา: ฿${p.price}</p>
