@@ -113,6 +113,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      will-change: transform;
       gap: 12px;
       background: var(--card);
       backdrop-filter: var(--blur);
@@ -120,7 +121,7 @@
       border-radius: var(--radius-lg);
       padding: 14px 16px;
       box-shadow: var(--shadow-soft);
-    }
+          }
 
     .product-info {
       flex: 1;
@@ -310,6 +311,63 @@
     .admin-row-action {
       font-size: 18px;
       color: var(--subtext);
+    }
+
+        /* ===============================
+       Motion & Interaction (iOS Feel)
+       =============================== */
+
+    /* Tap feedback */
+    button,
+    .product-card,
+    .admin-card,
+    .admin-row,
+    .nav-action {
+      transition:
+        transform 0.12s ease,
+        box-shadow 0.12s ease,
+        background-color 0.12s ease,
+        opacity 0.12s ease;
+    }
+
+    button:active,
+    .product-card:active,
+    .admin-card:active,
+    .admin-row:active,
+    .nav-action:active {
+      transform: scale(0.98);
+      opacity: 0.92;
+    }
+
+    /* Disabled button */
+    button:disabled {
+      background: rgba(0,0,0,0.12);
+      color: rgba(0,0,0,0.35);
+      box-shadow: none;
+    }
+
+    /* Hover hint (for desktop preview only) */
+    @media (hover: hover) {
+      .product-card:hover,
+      .admin-row:hover {
+        background: rgba(255,255,255,0.82);
+      }
+    }
+
+    /* Page transition base */
+    section {
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    section.hidden {
+      opacity: 0;
+      transform: translateY(6px);
+      pointer-events: none;
+    }
+
+    /* Nav action subtle feedback */
+    .nav-action:active {
+      background: rgba(0,0,0,0.12);
     }
 
   </style>
