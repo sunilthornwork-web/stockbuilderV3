@@ -2,1024 +2,222 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StockBuilder</title>
-  <link rel="icon" href="data:,">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Stock Management</title>
 
-  
-  <!-- ===================== -->
-  <!-- UI STYLE (Skeleton) -->
-  <!-- ===================== -->
-  
- <style>
-  /* ========================= */
-  /* THEME A — AURORA DARK */
-  /* ========================= */
-  :root {
-    --bg-main: #0b0f1a;
-    --bg-gradient: radial-gradient(
-      circle at top,
-      #111827,
-      #020617 70%
-    );
+  <!-- ===============================
+       UI STYLE (iOS 26 / Apple Style)
+       =============================== -->
+  <style>
+    :root {
+      --bg: #f2f2f7;
+      --card: rgba(255,255,255,0.75);
+      --blur: blur(20px);
+      --text: #1c1c1e;
+      --subtext: #6e6e73;
+      --primary: #007aff;
+      --danger: #ff3b30;
+      --radius: 18px;
+      --shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
 
-    --glass-bg: rgba(255, 255, 255, 0.08);
-    --glass-border: rgba(255, 255, 255, 0.15);
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-    --primary: #7dd3fc;
-    --accent: #a78bfa;
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
 
-    --text-main: #ffffff;
-    --text-dim: rgba(255, 255, 255, 0.6);
+    h1, h2, h3 {
+      margin: 0;
+      font-weight: 600;
+    }
 
-    --glow-primary: 0 0 20px rgba(125, 211, 252, 0.45);
-    --radius: 18px;
-  }
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 15px;
+      background: var(--primary);
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
 
-  /* RESET */
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  }
+    .hidden {
+      display: none !important;
+    }
 
-  body {
-  background:
-    radial-gradient(circle at 20% 10%, rgba(167,139,250,0.15), transparent 40%),
-    radial-gradient(circle at 80% 0%, rgba(125,211,252,0.12), transparent 35%),
-    radial-gradient(circle at 50% 100%, rgba(99,102,241,0.12), transparent 40%),
-    var(--bg-gradient);
-  color: var(--text-main);
-  min-height: 100vh;
-}
+    /* Layout */
+    .app {
+      max-width: 430px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: 16px;
+    }
 
-   body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: -1;
-}
+    .card {
+      background: var(--card);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
 
-
-  /* APP LAYOUT */
-  .app {
-    max-width: 480px;
-    margin: 0 auto;
-    padding: 16px;
-  }
-
-  .hidden {
-    display: none;
-  }
-
-  /* ========================= */
-  /* HEADER */
-  /* ========================= */
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-  }
-
-  .header div {
-    font-weight: 600;
-    letter-spacing: 0.3px;
-  }
-
-  .menu-btn {
-    font-size: 24px;
-    cursor: pointer;
-    color: var(--primary);
-    text-shadow: var(--glow-primary);
-  }
-
-  /* ========================= */
-  /* GLASS CARD BASE */
-  /* ========================= */
-  .box {
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: var(--radius);
-    border: 1px solid var(--glass-border);
-    padding: 16px;
-    margin-bottom: 14px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
-  }
-
-  /* ========================= */
-  /* PLACEHOLDER STYLE */
-  /* ========================= */
-  .placeholder {
-    color: var(--text-dim);
-    font-size: 14px;
-  }
-
-  /* ========================= */
-  /* PRODUCT CARD (1 COL) */
-  /* ========================= */
-  .product-card {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .product-image {
-    width: 100%;
-    height: 180px;
-    border-radius: 14px;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.12),
-      rgba(255, 255, 255, 0.03)
-    );
-  }
-
-  .product-sku {
-    font-size: 12px;
-    color: var(--text-dim);
-  }
-
-  .product-title-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .product-title {
-    font-size: 16px;
-    font-weight: 600;
-  }
-
-  .cart-btn {
-    font-size: 18px;
-    cursor: pointer;
-    color: var(--primary);
-    text-shadow: var(--glow-primary);
-  }
-
-  .product-price {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--primary);
-  }
-
-  .product-bottom {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-  }
-
-  .status {
-    padding: 2px 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-  }
-
-  .status.ready {
-    background: rgba(34, 197, 94, 0.2);
-    color: #4ade80;
-  }
-
-  .status.out {
-    background: rgba(239, 68, 68, 0.2);
-    color: #f87171;
-  }
-
-  /* ========================= */
-/* MENU OVERLAY */
-/* ========================= */
-#menuOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-}
-
-.menu-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-}
-
-.menu-panel {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 220px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(14px);
-  border: 1px solid var(--glass-border);
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-}
-
-.menu-item {
-  padding: 14px 16px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.menu-item:hover {
-  background: rgba(255,255,255,0.08);
-}
-
-/* ========================= */
-/* INPUTS */
-.input {
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid var(--glass-border);
-  color: var(--text-main);
-  outline: none;
-}
-
-/* ========================= */
-/* PRODUCT CARD (VIEWER) */
-.card {
-  cursor: pointer;
-}
-
-.card img {
-  width: 100%;
-  height: 180px;
-  object-fit: contain;
-  background: linear-gradient(
-    135deg,
-    rgba(255,255,255,0.08),
-    rgba(255,255,255,0.02)
-  );
-  border-radius: 14px;
-}
-
-
-/* ========================= */
-/* MODAL */
-.modal {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-}
-
-.modal-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-}
-
-.modal-content {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-
-  width: calc(100% - 32px);
-  max-width: 420px;
-  max-height: 85vh;
-
-  background: var(--glass-bg);
-  backdrop-filter: blur(18px);
-  border-radius: 22px;
-  padding: 16px;
-
-  overflow-y: auto;
-}
-
-
-.modal-content img {
-  width: 100%;
-  max-height: 45vh;     /* ไม่สูงเกิน */
-  object-fit: contain; /* ไม่ครอป */
-  border-radius: 16px;
-  background: rgba(255,255,255,0.04);
-  margin-bottom: 12px;
-}
-
- .modal-close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-
-  border: none;
-  cursor: pointer;
-
-  background: rgba(0,0,0,0.5);
-  color: #fff;
-  font-size: 20px;
-  line-height: 1;
-}
-  
-
-  /* ========================= */
-/* BUTTON */
-button.input {
-  cursor: pointer;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  color: #020617;
-  font-weight: 700;
-  border: none;
-}
-
- 
- </style>
+    .muted {
+      color: var(--subtext);
+      font-size: 13px;
+    }
+  </style>
 </head>
 
 <body>
   <div class="app">
 
-    <!-- ===================== -->
-<!-- MENU OVERLAY -->
-<!-- ===================== -->
-<div id="menuOverlay" class="hidden">
-  <div class="menu-backdrop"></div>
-  <div class="menu-panel">
-    <div class="menu-item" id="menuLogin">🔐 Admin Login</div>
-    <div class="menu-item hidden" id="menuAddProduct">➕ เพิ่มสินค้าใหม่</div>
-    <div class="menu-item hidden" id="menuLogout">🔒 Logout</div>
-  </div>
-</div>
- 
-    <!-- ===================== -->
-    <!-- VIEWER UI -->
-    <!-- ===================== -->
-    <section id="viewerView">
+    <!-- ===============================
+         VIEWER FLOW
+         =============================== -->
+    <section id="viewer-view">
+      <h1>สินค้า</h1>
 
-      <!-- HEADER -->
-      <div class="header">
-        <div class="menu-btn">☰</div>
-        <div>คลังสินค้า</div>
-        <div></div>
+      <!-- Product List -->
+      <div id="product-list">
+        <!-- render product cards here -->
       </div>
 
-      <!-- SEARCH -->
-<div class="box" style="position:relative">
-  <input
-    id="searchInput"
-    class="input"
-    placeholder="ค้นหาสินค้า / SKU"
-    autocomplete="off"
-  />
-  <button
-    id="clearSearchBtn"
-    class="hidden"
-    style="
-      position:absolute;
-      right:12px;
-      top:50%;
-      transform:translateY(-50%);
-      background:none;
-      border:none;
-      color:#aaa;
-      font-size:18px;
-      cursor:pointer;
-    "
-  >✕</button>
-</div>
-
-
-      <!-- FILTER (DROPDOWN) -->
-<div class="box">
-  <select id="categoryFilter" class="input">
-    <option value="">ทุกหมวด</option>
-  </select>
-</div>
-
-      <!-- PRODUCT LIST (1 COL) -->
-<div id="productList"></div>
-
+      <!-- Cart Summary -->
+      <div id="cart-summary" class="card">
+        <h3>ตะกร้า</h3>
+        <p class="muted">ยังไม่มีสินค้า</p>
+        <button id="btn-create-order">สร้างใบสั่งซื้อ</button>
+      </div>
     </section>
 
-    <!-- ===================== -->
-    <!-- ADMIN UI -->
-    <!-- ===================== -->
-    <section id="adminView" class="hidden">
+    <!-- ===============================
+         ORDER PREVIEW (PNG EXPORT)
+         =============================== -->
+    <section id="order-preview" class="hidden">
+      <div class="card" id="order-sheet">
+        <h2>ใบสั่งซื้อ</h2>
+        <div id="order-items"></div>
+        <p class="muted">Generated by Stock System</p>
+      </div>
 
-      <!-- HEADER -->
-<div class="header">
-  <div>📦 Admin Dashboard</div>
-  <div class="menu-btn">☰</div>
-</div>
+      <button id="btn-export-png">Export PNG</button>
+      <button id="btn-back-viewer">กลับ</button>
+    </section>
 
-      <!-- SEARCH (ADMIN) -->
-<div class="box placeholder">
-  🔍 ค้นหาสินค้า...
-</div>
+    <!-- ===============================
+         ADMIN FLOW
+         =============================== -->
+    <section id="admin-login" class="hidden">
+      <div class="card">
+        <h2>Admin Login</h2>
+        <input id="admin-password" type="password" placeholder="Password" />
+        <button id="btn-admin-login">Login</button>
+      </div>
+    </section>
 
-      <!-- PRODUCT MANAGEMENT -->
-      <div id="adminProductList"></div>
+    <section id="admin-dashboard" class="hidden">
+      <h1>Dashboard</h1>
 
+      <!-- Product CRUD -->
+      <div class="card">
+        <h3>สินค้า</h3>
+        <div id="admin-product-list"></div>
+        <button id="btn-add-product">เพิ่มสินค้า</button>
+      </div>
+
+      <!-- Stock Movement -->
+      <div class="card">
+        <h3>Stock Movement</h3>
+        <div id="stock-history"></div>
+      </div>
     </section>
 
   </div>
 
-  <script>
-  // =====================
-  // API CONFIG
-  // =====================
-  const API_URL = "https://script.google.com/macros/s/AKfycbwjFBf3miPNv0MkFujq9QcERqYQfDtevWskK0RriK1epnencJW0NPmpvURmHMx9QAc-/exec";
-</script>
-
-  <script>
-let editIndex = null;
-</script>
-
-  <!-- ===================== -->
-  <!-- APP STATE -->
-  <!-- ===================== -->
+  <!-- ===============================
+       GLOBAL STATE
+       =============================== -->
   <script>
     const state = {
-      role: "viewer", // viewer | admin
       products: [],
-      loading: false,
-      error: null
+      cart: [],
+      admin: {
+        loggedIn: false
+      }
     };
   </script>
 
-  <!-- ===================== -->
-  <!-- RENDER FUNCTIONS -->
-  <!-- ===================== -->
+  <!-- ===============================
+       API LAYER (Google Apps Script)
+       =============================== -->
   <script>
-  function hasAdminAuth() {
-    return !!localStorage.getItem("adminToken");
-  }
- 
-      function renderProducts() {
-    const list = document.getElementById("productList");
-    const q = document.getElementById("searchInput").value.toLowerCase();
-    const cat = document.getElementById("categoryFilter").value;
+    const API = {
+      fetchProducts() {},
+      createProduct() {},
+      updateProduct() {},
+      stockIn() {},
+      stockOut() {},
+      fetchStockHistory() {}
+    };
+  </script>
 
-    let items = state.products.filter(p =>
-  (!q ||
-    String(p.name).toLowerCase().includes(q) ||
-    String(p.id).toLowerCase().includes(q)
-  ) &&
-  (!cat || p.category === cat)
-);
+  <!-- ===============================
+       RENDER FUNCTIONS
+       =============================== -->
+  <script>
+    function renderProducts() {}
+    function renderCart() {}
+    function renderOrderSheet() {}
+    function renderAdminProducts() {}
+    function renderStockHistory() {}
+  </script>
 
+  <!-- ===============================
+       VIEWER FLOW LOGIC
+       =============================== -->
+  <script>
+    document.getElementById("btn-create-order").onclick = () => {
+      document.getElementById("viewer-view").classList.add("hidden");
+      document.getElementById("order-preview").classList.remove("hidden");
+    };
 
-      if (items.length === 0) {
-    list.innerHTML = `<div class="box placeholder">ไม่พบสินค้า</div>`;
-    return;
-   }
+    document.getElementById("btn-back-viewer").onclick = () => {
+      document.getElementById("order-preview").classList.add("hidden");
+      document.getElementById("viewer-view").classList.remove("hidden");
+    };
+  </script>
 
-    list.innerHTML = items.map((p, i) => `
-       <div class="box card" onclick="openDetailByIndex(${i})">
-        <img src="${p.image || ""}" />
-        <div class="product-sku">SKU: ${p.id}</div>
-        <div class="product-title-row">
-          <div class="product-title">${p.name}</div>
-          <div class="cart-btn">🛒</div>
-        </div>
-        <div class="product-price">฿${p.price}</div>
-        <div class="product-bottom">
-          <div>จำนวน: ${p.stock}</div>
-          <div class="status ready">${p.status}</div>
-        </div>
-      </div>
-    `).join("");
-  }
+  <!-- ===============================
+       ADMIN FLOW LOGIC
+       =============================== -->
+  <script>
+    document.getElementById("btn-admin-login").onclick = () => {
+      state.admin.loggedIn = true;
+      document.getElementById("admin-login").classList.add("hidden");
+      document.getElementById("admin-dashboard").classList.remove("hidden");
+    };
+  </script>
 
-  function renderUI() {
-    const viewerView = document.getElementById("viewerView");
-    const adminView = document.getElementById("adminView");
-
-    // Guard admin
-    if (state.role === "admin" && !hasAdminAuth()) {
-      state.role = "viewer";
-    }
-
-    if (state.role === "viewer") {
-      viewerView.classList.remove("hidden");
-      adminView.classList.add("hidden");
+  <!-- ===============================
+       INIT APP
+       =============================== -->
+  <script>
+    function initApp() {
+      // initial render
       renderProducts();
-    } else {
-      viewerView.classList.add("hidden");
-      adminView.classList.remove("hidden");
-      renderAdminProducts();
-    }
-  }  
-
-  function renderAdminProducts() {
-    const list = document.getElementById("adminProductList");
-    if (!list) return;
-
-    list.innerHTML = state.products.map((p, i) => `
-      <div class="box">
-        <div><strong>${p.name}</strong></div>
-        <div>SKU: ${p.id}</div>
-        <div>ราคา: ${p.price}</div>
-        <div>สต๊อก: ${p.stock}</div>
-        <div>สถานะ: ${p.status}</div>
-        <div style="text-align:right">
-          <button onclick="openEditForm(${i})">✏️</button>
-        </div>
-      </div>
-    `).join("");
-  }
-    
-  function openDetail(p) {
-    const modal = document.getElementById("productModal");
-    const c = document.getElementById("modalContent");
-    c.innerHTML = `
-  <button class="modal-close" onclick="closeProductModal()">✕</button>
-
-  <img src="${p.image || ""}" />
-
-  <h3>${p.name}</h3>
-  <p>SKU: ${p.id}</p>
-  <p>ราคา: ฿${p.price}</p>
-  <p>จำนวน: ${p.stock}</p>
-  <p>สถานะ: ${p.status}</p>
-`;
-
-    modal.classList.remove("hidden");
-  }
-
-  document.addEventListener("click", e => {
-    if (e.target.classList.contains("modal-backdrop")) {
-      document.getElementById("productModal").classList.add("hidden");
-    }
-  });
-
- function openDetailByIndex(i) {
-  openDetail(state.products[i]);
- }
-
- function closeProductModal() {
-  document.getElementById("productModal").classList.add("hidden");
-}
-
-  document.addEventListener("click", e => {
-  if (e.target.classList.contains("modal-backdrop")) {
-    document.getElementById("productModal").classList.add("hidden");
-  }
-});
-  
-
-</script>
-  
-  <!-- ===================== -->
-<!-- API FUNCTIONS -->
-<!-- ===================== -->
-<script>
-  async function apiRequest(action, payload = {}) {
-  const loadingEl = document.getElementById("globalLoading");
-if (loadingEl) loadingEl.classList.remove("hidden");
-
-  try {
-    // guard admin session
-    if (state.role === "admin" && !hasAdminAuth()) {
-      throw new Error("Session หมดอายุ กรุณา login ใหม่");
+      renderCart();
     }
 
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
-      body: JSON.stringify({
-        action,
-        payload
-      })
-    });
-
-    const text = await res.text();
-    const data = JSON.parse(text);
-
-    if (!data.success) {
-      throw new Error(data.message || "API error");
-    }
-
-    return data.data;
-
-  } catch (err) {
-    document.getElementById("globalErrorText").textContent = err.message;
-    document.getElementById("globalError").classList.remove("hidden");
-    return null;
-
-  } finally {
-    const loadingEl = document.getElementById("globalLoading");
-if (loadingEl) loadingEl.classList.add("hidden");
-  }
-}
-
-  // =====================
-  // API WRAPPERS
-  // =====================
-
-  async function apiLogin(username, password) {
-    return await apiRequest("login", { username, password });
-  }
-
-  async function apiAddProduct(product) {
-    return await apiRequest("add", product);
-  }
-
-  async function apiUpdateProduct(product) {
-    return await apiRequest("update", product);
-  }
-
-  async function apiUpdateStock(id, stock) {
-    return await apiRequest("updateStock", { id, stock });
-  }
-
-  async function uploadImage(file, productId) {
-  if (!file || !productId) return "";
-
-  const base64 = await new Promise(resolve => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(",")[1]);
-    reader.readAsDataURL(file);
-  });
-
-  const res = await apiRequest("uploadImage", {
-    filename: `${productId}.png`,
-    mimeType: file.type,
-    data: base64,
-    productId
-  });
-
-  return res ? res.imageUrl : "";
-}
-  
-</script>
-
-  <!-- ===================== -->
-  <!-- EVENT HANDLERS -->
-  <!-- ===================== -->
-  <script>
-  const menuOverlay = document.getElementById("menuOverlay");
-  const menuLogin = document.getElementById("menuLogin");
-  const menuLogout = document.getElementById("menuLogout");
-  const menuAddProduct = document.getElementById("menuAddProduct");
-
-  function openMenu() {
-    menuOverlay.classList.remove("hidden");
-  }
-
-  function closeMenu() {
-    menuOverlay.classList.add("hidden");
-  }
-
-  document.querySelectorAll(".menu-btn").forEach(btn => {
-    btn.addEventListener("click", openMenu);
-  });
-
-  document.querySelector(".menu-backdrop").addEventListener("click", closeMenu);
-
-  menuLogin.addEventListener("click", () => {
-  closeMenu();
-  document.getElementById("loginModal").classList.remove("hidden");
-});
-
-  function updateMenu() {
-    if (state.role === "admin") {
-      menuLogin.classList.add("hidden");
-      menuAddProduct.classList.remove("hidden");
-      menuLogout.classList.remove("hidden");
-    } else {
-      menuLogin.classList.remove("hidden");
-      menuAddProduct.classList.add("hidden");
-      menuLogout.classList.add("hidden");
-    }
-  }
-
-    menuLogout.addEventListener("click", () => {
-  localStorage.removeItem("adminToken");
-  localStorage.removeItem("role");
-  state.role = "viewer";
-  updateMenu();
-  renderUI();
-  closeMenu();
-});
-
-  // Init
-  const savedRole = localStorage.getItem("role");
-  if (savedRole === "admin") {
-    state.role = "admin";
-  }
-
-  updateMenu();
-  renderUI();
-    
-</script>
-
-<script>
-/* =========================
-   PRODUCT FORM CONTROL
-========================= */
-
-function openAddForm() {
-  editIndex = null;
-
-  document.getElementById("formTitle").textContent = "เพิ่มสินค้า";
-
-  ["f_id","f_name","f_price","f_stock","f_category"].forEach(id => {
-    document.getElementById(id).value = "";
-  });
-
-  document.getElementById("f_status").value = "พร้อมส่ง";
-  document.getElementById("f_image").value = "";
-
-  const hint = document.getElementById("currentImageHint");
-  if (hint) hint.classList.add("hidden");
-
-  document.getElementById("productFormModal").classList.remove("hidden");
-}
-
-function openEditForm(i) {
-  editIndex = i;
-  const p = state.products[i];
-
-  document.getElementById("formTitle").textContent = "แก้ไขสินค้า";
-  document.getElementById("f_id").value = p.id;
-  document.getElementById("f_name").value = p.name;
-  document.getElementById("f_price").value = p.price;
-  document.getElementById("f_stock").value = p.stock;
-  document.getElementById("f_category").value = p.category;
-  document.getElementById("f_status").value = p.status;
-
-  const hint = document.getElementById("currentImageHint");
-  if (hint) {
-    p.image ? hint.classList.remove("hidden") : hint.classList.add("hidden");
-  }
-
-  document.getElementById("productFormModal").classList.remove("hidden");
-}
-
-/* hook เมนู ➕ */
-if (typeof menuAddProduct !== "undefined") {
-  menuAddProduct.addEventListener("click", () => {
-    closeMenu();
-    openAddForm();
-  });
-}
-</script>
-    
-<script>
-const searchInput = document.getElementById("searchInput");
-const clearBtn = document.getElementById("clearSearchBtn");
-const categoryFilter = document.getElementById("categoryFilter");
-
-// พิมพ์ search → filter + show ❌
-searchInput.addEventListener("input", () => {
-  clearBtn.classList.toggle("hidden", !searchInput.value);
-  renderProducts();
-});
-
-// เปลี่ยน category → reset search
-categoryFilter.addEventListener("change", () => {
-  searchInput.value = "";
-  clearBtn.classList.add("hidden");
-  renderProducts();
-});
-
-// กด ❌ → reset ทุกอย่าง
-clearBtn.addEventListener("click", () => {
-  searchInput.value = "";
-  categoryFilter.value = "";
-  clearBtn.classList.add("hidden");
-  renderProducts();
-});
-
-// Load categories ครั้งเดียว
-apiListProducts().then(() => {
-  const cats = [...new Set(state.products.map(p => p.category))];
-  const sel = document.getElementById("categoryFilter");
-  cats.forEach(c => {
-    const o = document.createElement("option");
-    o.value = c;
-    o.textContent = c;
-    sel.appendChild(o);
-  });
-});
-</script>
-
-
-
-  <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const loginModal = document.getElementById("loginModal");
-  const loginBtn = document.getElementById("loginBtn");
-  const loginError = document.getElementById("loginError");
-
-  if (!loginModal) return; // guard กัน crash
-
-  // Close login modal on backdrop
-  const backdrop = loginModal.querySelector(".modal-backdrop");
-  if (backdrop) {
-    backdrop.addEventListener("click", () => {
-      loginModal.classList.add("hidden");
-    });
-  }
-
-  loginBtn.addEventListener("click", async () => {
-    loginError.classList.add("hidden");
-
-    const username = document.getElementById("loginUser").value.trim();
-    const password = document.getElementById("loginPass").value.trim();
-
-    if (!username || !password) {
-      loginError.textContent = "กรุณากรอกข้อมูลให้ครบ";
-      loginError.classList.remove("hidden");
-      return;
-    }
-
-    const res = await apiLogin(username, password);
-
-    if (!res || !res.token) {
-      loginError.textContent = "เข้าสู่ระบบไม่สำเร็จ";
-      loginError.classList.remove("hidden");
-      return;
-    }
-
-    localStorage.setItem("adminToken", res.token);
-    localStorage.setItem("role", "admin");
-    state.role = "admin";
-
-    updateMenu();
-    renderUI();
-    loginModal.classList.add("hidden");
-  });
-});
-</script>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const saveBtn = document.getElementById("saveProductBtn");
-  if (!saveBtn) return;
-
-  saveBtn.addEventListener("click", async () => {
- 
-  const imageFile = document.getElementById("f_image")?.files?.[0];
-  const productId = document.getElementById("f_id").value.trim();
-
-  let imageUrl = "";
-
-  // edit → ใช้รูปเดิมก่อน
-  if (editIndex !== null) {
-    imageUrl = state.products[editIndex]?.image || "";
-  }
-
-  // ถ้ามีรูปใหม่ → upload และแทนที่
-  if (imageFile) {
-    imageUrl = await uploadImage(imageFile, productId);
-  }
-
-  const product = {
-    id: productId,
-    name: f_name.value.trim(),
-    price: Number(f_price.value),
-    stock: Number(f_stock.value),
-    category: f_category.value.trim(),
-    status: f_status.value,
-    image: imageUrl
-  };
-
-  if (!product.id || !product.name) {
-    formError.classList.remove("hidden");
-    return;
-  }
-
-  if (product.price < 0 || product.stock < 0) {
-    formError.textContent = "ราคาและจำนวนต้องไม่ติดลบ";
-    formError.classList.remove("hidden");
-    return;
-  }
-
-  if (editIndex === null) {
-    await apiAddProduct(product);
-  } else {
-    await apiUpdateProduct(product);
-  }
-
-  await apiListProducts();
-  document.getElementById("productFormModal").classList.add("hidden");
- });
-});
-</script>
-
-  <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const search = document.getElementById("searchInput");
-  if (search) {
-    search.value = "";
-  }
-});
-</script>
-
-
-  <!-- ===================== -->
-<!-- PRODUCT DETAIL MODAL -->
-<!-- ===================== -->
-<div id="productModal" class="modal hidden">
-  <div class="modal-backdrop"></div>
-  <div class="modal-content" id="modalContent"></div>
-</div>
-
-<!-- ===================== -->
-<!-- ADMIN LOGIN MODAL -->
-<!-- ===================== -->
-<div id="loginModal" class="modal hidden">
-  <div class="modal-backdrop"></div>
-  <div class="modal-content">
-    <h3>Admin Login</h3>
-    <div class="box">
-      <input id="loginUser" class="input" placeholder="Username" />
-    </div>
-    <div class="box">
-      <input id="loginPass" class="input" type="password" placeholder="Password" />
-    </div>
-    <div class="box">
-      <button id="loginBtn" class="input">เข้าสู่ระบบ</button>
-    </div>
-    <div id="loginError" class="placeholder hidden">เข้าสู่ระบบไม่สำเร็จ</div>
-  </div>
-</div>
-
-<!-- ===================== -->
-<!-- PRODUCT FORM MODAL -->
-<!-- ===================== -->
-<div id="productFormModal" class="modal hidden">
-  <div class="modal-backdrop"></div>
-  <div class="modal-content">
-    <h3 id="formTitle">เพิ่มสินค้า</h3>
-
-    <div class="box"><input id="f_id" class="input" placeholder="รหัสสินค้า" /></div>
-    <div class="box"><input id="f_name" class="input" placeholder="ชื่อสินค้า" /></div>
-    <div class="box"><input id="f_price" class="input" type="number" placeholder="ราคา" /></div>
-    <div class="box"><input id="f_stock" class="input" type="number" placeholder="จำนวน" /></div>
-    <div class="box"><input id="f_category" class="input" placeholder="หมวดสินค้า" /></div>
-
-    <div class="box">
-      <select id="f_status" class="input">
-        <option value="พร้อมส่ง">พร้อมส่ง</option>
-        <option value="หมด">หมด</option>
-        <option value="โกดังไทย">โกดังไทย</option>
-        <option value="อยู่ระหว่างจัดส่ง">อยู่ระหว่างจัดส่ง</option>
-      </select>
-    </div>
-
-    <!-- IMAGE UPLOAD -->
-<div class="box">
-  <input id="f_image" class="input" type="file" accept="image/*" />
-</div>
-
-<div id="currentImageHint" class="placeholder hidden">
-  📷 สินค้านี้มีรูปอยู่แล้ว
-</div>
-    
-    <div class="box">
-      <button id="saveProductBtn" class="input">บันทึก</button>
-    </div>
-
-    <div id="formError" class="placeholder hidden">กรุณากรอกข้อมูลให้ครบ</div>
-  </div>
-</div>
-
-<!-- ===================== -->
-<!-- GLOBAL LOADING -->
-<!-- ===================== -->
-<div id="globalLoading" class="modal hidden">
-  <div class="modal-backdrop"></div>
-  <div class="modal-content">
-    <div class="placeholder">⏳ กำลังประมวลผล...</div>
-  </div>
-</div>
-
-<!-- ===================== -->
-<!-- GLOBAL ERROR -->
-<!-- ===================== -->
-<div id="globalError" class="modal hidden">
-  <div class="modal-backdrop"></div>
-  <div class="modal-content">
-    <div id="globalErrorText" class="placeholder"></div>
-    <div class="box">
-      <button class="input" onclick="closeGlobalError()">ปิด</button>
-    </div>
-  </div>
-</div>
-
-<script>
-  function closeGlobalError() {
-    const modal = document.getElementById("globalError");
-    if (modal) {
-      modal.classList.add("hidden");
-    }
-  }
-</script>
-  
-
+    initApp();
+  </script>
 </body>
 </html>
