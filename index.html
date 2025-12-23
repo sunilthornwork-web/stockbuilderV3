@@ -777,15 +777,15 @@
     const icon = document.getElementById("cart-icon");
     const badge = icon.querySelector(".cart-badge");
 
-    if (state.cart.length === 0) {
+    const itemCount = state.cart.length; // ✅ จำนวน "รายการ"
+
+    if (itemCount === 0) {
       icon.classList.add("hidden");
       return;
     }
 
     icon.classList.remove("hidden");
-    const totalQty = state.cart.reduce((sum, i) => sum + i.qty, 0);
-badge.textContent = totalQty;
-
+    badge.textContent = itemCount;
   }
 </script>
 
