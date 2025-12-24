@@ -589,6 +589,18 @@
       </div>
 
       <!-- ===============================
+     Orders Inbox
+     =============================== -->
+<div class="admin-section">
+  <div class="admin-section-title">Orders</div>
+
+  <div class="admin-card">
+    <div id="admin-order-list"></div>
+  </div>
+</div>
+
+
+      <!-- ===============================
            Product Management
            =============================== -->
       <div class="admin-section">
@@ -1110,7 +1122,7 @@
       return;
     }
 
-    // 🔴 APPROVED → หักสต๊อก
+    // APPROVED → หักสต๊อก
     order.items.forEach(item => {
       const product = state.products.find(p => p.id === item.productId);
       if (product) {
@@ -1120,25 +1132,25 @@
 
     order.status = "APPROVED";
     renderAdminOrders();
-    renderProducts(); // stock เปลี่ยน
+    renderProducts();
   }
 </script>
 
+ 
   <script>
-    document.getElementById("btn-admin-login").onclick = () => {
-      state.admin.loggedIn = true;
-      document.getElementById("admin-login").classList.add("hidden");
-      document.getElementById("admin-dashboard").classList.remove("hidden");
-      <div class="admin-section">
-  <div class="admin-section-title">Orders</div>
+  document.getElementById("btn-admin-login").onclick = () => {
+    state.admin.loggedIn = true;
 
-  <div class="admin-card">
-    <div id="admin-order-list"></div>
-  </div>
-</div>
+    document.getElementById("admin-login").classList.add("hidden");
+    document.getElementById("admin-dashboard").classList.remove("hidden");
 
-    };
-  </script>
+    // 🔴 สำคัญ: render Orders หลัง login เท่านั้น
+    renderAdminOrders();
+  };
+</script>
+
+
+
 
   
   <!-- ===============================
@@ -1148,11 +1160,12 @@
   function initApp() {
     renderProducts();
     renderCartIcon();
-    renderAdminOrders(); // 🔴 NEW
+    // ❌ ไม่เรียก renderAdminOrders ที่นี่
   }
 
   initApp();
 </script>
+
 
 
 
