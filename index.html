@@ -708,6 +708,7 @@
     ],
     cart: [],
     orders: [],            // 🔴 NEW: Order Inbox
+    currentOrder: null, // ✅ ADD
     selectedProduct: null,
     admin: {
       loggedIn: false
@@ -907,25 +908,25 @@
 
   <script>
   function renderOrderSheet() {
-    const body = document.getElementById("order-items");
-    body.innerHTML = "";
+  const body = document.getElementById("order-items");
+  body.innerHTML = "";
 
-    const dateEl = document.getElementById("order-date");
-    dateEl.textContent = new Date().toLocaleString("th-TH");
+  const order = state.currentOrder;
+  if (!order) return;
 
-    state.cart.forEach(item => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td style="padding:6px 0;">${item.name}</td>
-        <td align="center">${item.qty}</td>
-        <td>${item.user}</td>
-      `;
-      body.appendChild(tr);
-    });
-  
-    // 🔴 CHANGED: UX GUARD – update export button
-    updateExportButton();
-  }
+  document.getElementById("order-date").textContent =
+    new Date(order.createdAt).toLocaleString("th-TH");
+
+  order.items.forEach(item => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${item.name}</td>
+      <td align="center">${item.qty}</td>
+      <td>${item.user}</td>
+    `;
+    body.appendChild(tr);
+  });
+}
 
 </script>
 
@@ -996,14 +997,18 @@
  <script>
   // ไปหน้า Order Preview
   document.getElementById("btn-go-order").onclick = () => {
-    if (state.cart.length === 0) return; // 🔒 guard สำคัญ
+  if (state.cart.length === 0) return;     // 🔒 guard 1
+  if (state.currentOrder) return;          // 🔒 guard 2 (กันกดซ้ำ)
+    if (state.currentOrder?.status === "PENDING") return;
 
-    document.getElementById("cart-view").classList.add("hidden");
-    document.getElementById("order-preview").classList.remove("hidden");
 
-    createOrderFromCart();     // 🔴 NEW
-    renderOrderSheet(); // 🔴 ต้องเรียกที่นี่ที่เดียว
-  };
+  document.getElementById("cart-view").classList.add("hidden");
+  document.getElementById("order-preview").classList.remove("hidden");
+
+  createOrderFromCart();   // สร้างครั้งเดียว
+  renderOrderSheet();      // อ่านจาก currentOrder
+};
+
 
   // เปิดตะกร้าจาก icon
   document.getElementById("cart-icon").onclick = () => {
@@ -1070,13 +1075,13 @@
       // 🔴 UX CONFIRM
       setTimeout(() => {
         if (confirm("สร้างใบสั่งซื้อเรียบร้อย\nต้องการล้างตะกร้าเพื่อเริ่มใหม่หรือไม่?")) {
-          state.cart = [];
-          renderCartIcon();
-          updateExportButton();
+  state.cart = [];
+  state.currentOrder = null; // ✅ เคลียร์ order ที่ดูอยู่
+  renderCartIcon();
 
-          document.getElementById("order-preview").classList.add("hidden");
-          document.getElementById("viewer-view").classList.remove("hidden");
-        }
+  document.getElementById("order-preview").classList.add("hidden");
+  document.getElementById("viewer-view").classList.remove("hidden");
+}
       }, 100);
     };
 
@@ -1086,21 +1091,18 @@
 
 <script>
   function createOrderFromCart() {
-    if (state.cart.length === 0) return;
+  if (state.cart.length === 0) return;
 
-    const order = {
-      id: Date.now(),
-      items: JSON.parse(JSON.stringify(state.cart)), // snapshot
-      createdAt: new Date().toISOString(),
-      status: "PENDING" // PENDING | APPROVED | REJECTED
-    };
+  const order = {
+    id: Date.now(),
+    items: JSON.parse(JSON.stringify(state.cart)),
+    createdAt: new Date().toISOString(),
+    status: "PENDING"
+  };
 
-    state.orders.push(order);
-
-    // Viewer ได้ไฟล์แล้ว → ล้าง cart
-    state.cart = [];
-    renderCartIcon();
-  }
+  state.orders.push(order);
+  state.currentOrder = order; // ✅ สำคัญมาก
+}
 </script>
 
   <!-- ===============================
