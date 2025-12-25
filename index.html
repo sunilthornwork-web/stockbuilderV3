@@ -696,6 +696,32 @@
 
   </div>
 </div>
+
+  <!-- ===============================
+     Product Detail Popup (UI Only)
+     =============================== -->
+<div id="product-detail-sheet" class="sheet hidden">
+  <div class="sheet-card">
+
+    <h2 id="detail-name">สินค้า</h2>
+
+    <p class="muted" id="detail-stock">
+      คงเหลือ -
+    </p>
+
+    <div class="card" style="margin:16px 0;">
+      <div class="muted">รายละเอียดสินค้า</div>
+      <div id="detail-desc">
+        สินค้าคุณภาพสำหรับใช้งานภายในระบบ
+      </div>
+    </div>
+
+    <button id="btn-go-add-to-cart">สั่งสินค้า</button>
+    <button class="secondary" id="btn-close-detail">ปิด</button>
+
+  </div>
+</div>
+
   
   <!-- ===============================
        GLOBAL STATE
@@ -797,7 +823,7 @@
 </script>
 
   <script>
-  function renderProducts() {
+ function renderProducts() {
     const list = document.getElementById("product-list");
     list.innerHTML = "";
 
@@ -821,7 +847,9 @@
         <div class="product-action">›</div>
       `;
 
-      card.onclick = () => openAddToCartSheet(p);
+      // 🔴 CHANGED: เปิด Product Detail ก่อน
+      card.onclick = () => openProductDetail(p);
+
       list.appendChild(card);
     });
   }
@@ -936,6 +964,27 @@
   <!-- ===============================
      VIEWER FLOW LOGIC
      =============================== -->
+  <script>
+  const detailSheet = document.getElementById("product-detail-sheet");
+  const detailName = document.getElementById("detail-name");
+  const detailStock = document.getElementById("detail-stock");
+
+  function openProductDetail(product) {
+    state.selectedProduct = product;
+
+    detailName.textContent = product.name;
+    detailStock.textContent = `คงเหลือ ${product.stock} ชิ้น`;
+
+    detailSheet.classList.remove("hidden");
+  }
+
+  function closeProductDetail() {
+    detailSheet.classList.add("hidden");
+  }
+
+  document.getElementById("btn-close-detail").onclick = closeProductDetail;
+</script>
+
 <script>
   const sheet = document.getElementById("add-to-cart-sheet");
   const qtyInput = sheet.querySelector('input[type="number"]');
@@ -1104,6 +1153,14 @@
   state.currentOrder = order; // ✅ สำคัญมาก
 }
 </script>
+
+  <script>
+  document.getElementById("btn-go-add-to-cart").onclick = () => {
+    closeProductDetail();
+    openAddToCartSheet(state.selectedProduct); // ใช้ของเดิม
+  };
+</script>
+
 
   <!-- ===============================
        ADMIN FLOW LOGIC
