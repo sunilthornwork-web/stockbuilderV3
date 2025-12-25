@@ -1086,25 +1086,38 @@
 <script>
   document.getElementById("btn-export-png").onclick = () => {
     const exportBtn = document.getElementById("btn-export-png");
-
-    // 🔴 CHANGED: เริ่ม export → disable แบบ iOS
     exportBtn.classList.add("loading");
 
-    const node = document.getElementById("order-sheet");
-    const rect = node.getBoundingClientRect();
-    const scale = 2;
+    const source = document.getElementById("order-sheet");
+
+    // 🔴 CHANGED: clone DOM เพื่อความคม
+    const clone = source.cloneNode(true);
+    clone.style.background = "#ffffff";
+    clone.style.color = "#000000";
+    clone.style.boxShadow = "none";
+    clone.style.margin = "0";
+
+    const rect = source.getBoundingClientRect();
+    const scale = 3; // 🔴 CHANGED: เพิ่มความคม (2 → 3)
 
     const canvas = document.createElement("canvas");
     canvas.width = rect.width * scale;
     canvas.height = rect.height * scale;
 
     const ctx = canvas.getContext("2d");
+
+    // 🔴 CHANGED: พื้นหลังขาว (กันโปร่งใส)
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     ctx.scale(scale, scale);
 
     const data = `
       <svg xmlns="http://www.w3.org/2000/svg" width="${rect.width}" height="${rect.height}">
         <foreignObject width="100%" height="100%">
-          ${new XMLSerializer().serializeToString(node)}
+          <div xmlns="http://www.w3.org/1999/xhtml" style="background:#fff;">
+            ${new XMLSerializer().serializeToString(clone)}
+          </div>
         </foreignObject>
       </svg>
     `;
@@ -1118,19 +1131,16 @@
       link.href = canvas.toDataURL("image/png");
       link.click();
 
-      // 🔴 CHANGED: export เสร็จ → คืนสถานะปุ่ม
       exportBtn.classList.remove("loading");
 
-      // 🔴 UX CONFIRM
       setTimeout(() => {
         if (confirm("สร้างใบสั่งซื้อเรียบร้อย\nต้องการล้างตะกร้าเพื่อเริ่มใหม่หรือไม่?")) {
-  state.cart = [];
-  state.currentOrder = null; // ✅ เคลียร์ order ที่ดูอยู่
-  renderCartIcon();
+          state.cart = [];
+          renderCartIcon();
 
-  document.getElementById("order-preview").classList.add("hidden");
-  document.getElementById("viewer-view").classList.remove("hidden");
-}
+          document.getElementById("order-preview").classList.add("hidden");
+          document.getElementById("viewer-view").classList.remove("hidden");
+        }
       }, 100);
     };
 
