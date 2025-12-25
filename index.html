@@ -1136,6 +1136,7 @@
       setTimeout(() => {
         if (confirm("สร้างใบสั่งซื้อเรียบร้อย\nต้องการล้างตะกร้าเพื่อเริ่มใหม่หรือไม่?")) {
           state.cart = [];
+          state.currentOrder = null; // 🔴 ADD THIS
           renderCartIcon();
 
           document.getElementById("order-preview").classList.add("hidden");
