@@ -1125,12 +1125,22 @@
   const qty = Number(qtyInput.value);
   const user = userInput.value.trim();
 
+  if (!state.selectedProduct) {
+    alert("กรุณาเลือกสินค้าใหม่");
+    return;
+  }
+ 
   if (!qty || qty <= 0 || !user) {
     alert("กรอกจำนวนและชื่อผู้สั่ง");
     return;
   }
 
   const product = state.selectedProduct;
+
+if (qty > product.stock) {
+  alert(`สต๊อกไม่พอ (เหลือ ${product.stock})`);
+  return;
+}
 
   // 🔴 NORMALIZE: หา item เดิม (สินค้าเดียวกัน + ผู้สั่งเดียวกัน)
   const existing = state.cart.find(
@@ -1166,6 +1176,14 @@
 
   document.getElementById("cart-view").classList.add("hidden");
   document.getElementById("order-preview").classList.remove("hidden");
+
+  for (const item of state.cart) {
+     const product = state.products.find(p => p.id === item.productId);
+     if (!product || product.stock < item.qty) {
+       alert(`สินค้า ${item.name} สต๊อกไม่พอ`);
+       return;
+     }
+   } 
 
   createOrderFromCart();   // สร้างครั้งเดียว
   renderOrderSheet();      // อ่านจาก currentOrder
@@ -1415,6 +1433,7 @@ document.getElementById("btn-approve-order").onclick = async () => {
   }
 
   closeAdminOrderDetail();
+  detailSheet.classList.add("hidden");
 
   // 🔴 SYNC ใหม่
   state.products = await API.fetchProducts();
