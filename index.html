@@ -834,21 +834,23 @@
       return res.json();
     },
 
-    async approveOrder(orderId) {
-      const res = await fetch(API_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          action: "approveOrder",
-          payload: { orderId }
-        })
-      });
+    async approveOrder(orderId, items) {
+  const res = await fetch(API_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      action: "approveOrder",
+      payload: {
+        orderId,
+        items
+      }
+    })
+  });
 
-      return res.json();
-    }
-  };
+  return res.json();
+}
 </script>
 
 
