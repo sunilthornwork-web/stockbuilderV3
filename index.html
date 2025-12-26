@@ -1344,14 +1344,19 @@
                  style="width:80px;text-align:right;"
                  data-index="${index}" />
         </td>
-        <td align="right">฿ ${rowTotal}</td>
+        <td align="right" class="row-total">฿ ${rowTotal}</td>
       `;
 
       tr.querySelector("input").oninput = (e) => {
-        const price = Number(e.target.value) || 0;
-        state.admin.selectedOrder.items[index].price = price;
-        openAdminOrderDetail(state.admin.selectedOrder); // re-render
-      };
+  const price = Number(e.target.value) || 0;
+  item.price = price;
+
+  const newRowTotal = item.qty * price;
+  tr.querySelector(".row-total").textContent =
+    "฿ " + newRowTotal.toLocaleString("th-TH");
+
+  updateAdminTotal();
+};
 
       adminOrderItems.appendChild(tr);
     });
@@ -1359,6 +1364,15 @@
     adminOrderTotal.textContent = total.toLocaleString("th-TH");
     adminOrderSheet.classList.remove("hidden");
   }
+
+    function updateAdminTotal() {
+  const total = state.admin.selectedOrder.items.reduce(
+    (sum, i) => sum + (i.qty * (i.price || 0)),
+    0
+  );
+  adminOrderTotal.textContent = total.toLocaleString("th-TH");
+}
+
 
   function closeAdminOrderDetail() {
     adminOrderSheet.classList.add("hidden");
