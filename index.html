@@ -730,6 +730,9 @@
   <!-- ===============================
      Admin Order Detail Sheet
      =============================== -->
+<!-- ===============================
+     Admin Order Detail Sheet
+     =============================== -->
 <div id="admin-order-detail-sheet" class="sheet hidden">
   <div class="sheet-card">
 
@@ -742,16 +745,27 @@
 
     <div class="card" style="margin:16px 0;">
       <div class="muted">รายการสินค้า</div>
+
       <table style="width:100%;font-size:14px;border-collapse:collapse;">
         <thead>
           <tr style="border-bottom:1px solid rgba(0,0,0,0.1);">
             <th align="left">สินค้า</th>
             <th align="center">จำนวน</th>
-            <th align="left">ผู้สั่ง</th>
+            <th align="right">ราคา/หน่วย</th>
+            <th align="right">รวม</th>
           </tr>
         </thead>
         <tbody id="admin-order-items"></tbody>
       </table>
+    </div>
+
+    <div class="card">
+      <div class="admin-row">
+        <div class="admin-row-label">ยอดรวมทั้งหมด</div>
+        <div class="admin-row-action">
+          ฿ <span id="admin-order-total">0</span>
+        </div>
+      </div>
     </div>
 
     <button id="btn-approve-order">ยืนยันใบสั่งซื้อ</button>
@@ -1300,26 +1314,47 @@
   <script>
   const adminOrderSheet = document.getElementById("admin-order-detail-sheet");
   const adminOrderItems = document.getElementById("admin-order-items");
+  const adminOrderTotal = document.getElementById("admin-order-total");
 
   function openAdminOrderDetail(order) {
-    state.admin.selectedOrder = order;
+    state.admin.selectedOrder = JSON.parse(JSON.stringify(order));
 
     document.getElementById("admin-order-id").textContent = order.id;
     document.getElementById("admin-order-date").textContent =
       new Date(order.createdAt).toLocaleString("th-TH");
 
     adminOrderItems.innerHTML = "";
+    let total = 0;
 
-    order.items.forEach(item => {
+    state.admin.selectedOrder.items.forEach((item, index) => {
+      if (!item.price) item.price = 0;
+
+      const rowTotal = item.qty * item.price;
+      total += rowTotal;
+
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${item.name}</td>
         <td align="center">${item.qty}</td>
-        <td>${item.user}</td>
+        <td align="right">
+          <input type="number"
+                 value="${item.price}"
+                 style="width:80px;text-align:right;"
+                 data-index="${index}" />
+        </td>
+        <td align="right">฿ ${rowTotal}</td>
       `;
+
+      tr.querySelector("input").oninput = (e) => {
+        const price = Number(e.target.value) || 0;
+        state.admin.selectedOrder.items[index].price = price;
+        openAdminOrderDetail(state.admin.selectedOrder); // re-render
+      };
+
       adminOrderItems.appendChild(tr);
     });
 
+    adminOrderTotal.textContent = total.toLocaleString("th-TH");
     adminOrderSheet.classList.remove("hidden");
   }
 
@@ -1331,19 +1366,20 @@
   document.getElementById("btn-close-admin-order").onclick = closeAdminOrderDetail;
 </script>
 
+
   <script>
   document.getElementById("btn-approve-order").onclick = async () => {
-    const order = state.admin.selectedOrder;
-    if (!order) return;
+  const order = state.admin.selectedOrder;
+  if (!order) return;
 
-    if (!confirm("ยืนยันใบสั่งซื้อและหักสต๊อก?")) return;
+  if (!confirm("ยืนยันใบสั่งซื้อและหักสต๊อก?")) return;
 
-    await API.approveOrder(order.id);
+  await API.approveOrder(order.id, order.items); // 🔴 ส่ง items ใหม่
 
-    closeAdminOrderDetail();
-    await renderAdminOrders();
-    renderProducts(); // update stock
-  };
+  closeAdminOrderDetail();
+  await renderAdminOrders();
+  renderProducts();
+};
 
   document.getElementById("btn-reject-order").onclick = async () => {
   const order = state.admin.selectedOrder;
