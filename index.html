@@ -727,6 +727,40 @@
   </div>
 </div>
 
+  <!-- ===============================
+     Admin Order Detail Sheet
+     =============================== -->
+<div id="admin-order-detail-sheet" class="sheet hidden">
+  <div class="sheet-card">
+
+    <h2>รายละเอียดใบสั่งซื้อ</h2>
+
+    <p class="muted">
+      Order ID: <span id="admin-order-id">-</span><br>
+      วันที่: <span id="admin-order-date">-</span>
+    </p>
+
+    <div class="card" style="margin:16px 0;">
+      <div class="muted">รายการสินค้า</div>
+      <table style="width:100%;font-size:14px;border-collapse:collapse;">
+        <thead>
+          <tr style="border-bottom:1px solid rgba(0,0,0,0.1);">
+            <th align="left">สินค้า</th>
+            <th align="center">จำนวน</th>
+            <th align="left">ผู้สั่ง</th>
+          </tr>
+        </thead>
+        <tbody id="admin-order-items"></tbody>
+      </table>
+    </div>
+
+    <button id="btn-approve-order">ยืนยันใบสั่งซื้อ</button>
+    <button class="secondary" id="btn-reject-order">ปฏิเสธ</button>
+    <button class="secondary" id="btn-close-admin-order">ปิด</button>
+
+  </div>
+</div>
+
   
   <!-- ===============================
        GLOBAL STATE
@@ -738,10 +772,11 @@
       { id: 2, name: "สินค้า B", stock: 80 }
     ],
     cart: [],
-    currentOrder: null, // 🔴 ADD THIS
+    currentOrder: null,
     selectedProduct: null,
     admin: {
-      loggedIn: false
+      loggedIn: false,
+      selectedOrder: null // 🔴 ADD: ใบสั่งซื้อที่ Admin กำลังดู
     }
   };
 </script>
@@ -830,36 +865,24 @@
 
       div.innerHTML = `
         <div>
-          <div class="admin-row-label">
-            Order #${order.id}
-          </div>
+          <div class="admin-row-label">Order #${order.id}</div>
           <div class="admin-row-desc">
-            ${order.items.length} รายการ · 
+            ${order.items.length} รายการ ·
             ${new Date(order.createdAt).toLocaleString("th-TH")}
           </div>
         </div>
         <div class="admin-row-action">›</div>
       `;
 
-      div.onclick = async () => {
-        const ok = confirm(
-          "ยืนยันใบสั่งซื้อนี้?\n" +
-          `มี ${order.items.length} รายการ`
-        );
-
-        if (!ok) return;
-
-        await API.approveOrder(order.id);
-        await renderAdminOrders();
-        renderProducts(); // stock เปลี่ยน → update UI
+      // 🔴 CHANGED HERE
+      div.onclick = () => {
+        openAdminOrderDetail(order);
       };
 
       box.appendChild(div);
     });
   }
 </script>
-
-
   
   <script>
   function renderCartSummary() {
@@ -1244,6 +1267,19 @@
   }
 </script>
 
+  <script>
+  // 🔴 ADD: จาก Product Detail → Add to Cart
+  document.getElementById("btn-go-add-to-cart").onclick = () => {
+    if (!state.selectedProduct) return;
+
+    // ปิด detail ก่อน
+    closeProductDetail();
+
+    // เปิด sheet เพิ่มสินค้า
+    openAddToCartSheet(state.selectedProduct);
+  };
+</script>
+
 
   <!-- ===============================
        ADMIN FLOW LOGIC
@@ -1260,6 +1296,68 @@
     renderAdminOrders();
   };
 </script>
+
+  <script>
+  const adminOrderSheet = document.getElementById("admin-order-detail-sheet");
+  const adminOrderItems = document.getElementById("admin-order-items");
+
+  function openAdminOrderDetail(order) {
+    state.admin.selectedOrder = order;
+
+    document.getElementById("admin-order-id").textContent = order.id;
+    document.getElementById("admin-order-date").textContent =
+      new Date(order.createdAt).toLocaleString("th-TH");
+
+    adminOrderItems.innerHTML = "";
+
+    order.items.forEach(item => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${item.name}</td>
+        <td align="center">${item.qty}</td>
+        <td>${item.user}</td>
+      `;
+      adminOrderItems.appendChild(tr);
+    });
+
+    adminOrderSheet.classList.remove("hidden");
+  }
+
+  function closeAdminOrderDetail() {
+    adminOrderSheet.classList.add("hidden");
+    state.admin.selectedOrder = null;
+  }
+
+  document.getElementById("btn-close-admin-order").onclick = closeAdminOrderDetail;
+</script>
+
+  <script>
+  document.getElementById("btn-approve-order").onclick = async () => {
+    const order = state.admin.selectedOrder;
+    if (!order) return;
+
+    if (!confirm("ยืนยันใบสั่งซื้อและหักสต๊อก?")) return;
+
+    await API.approveOrder(order.id);
+
+    closeAdminOrderDetail();
+    await renderAdminOrders();
+    renderProducts(); // update stock
+  };
+
+  document.getElementById("btn-reject-order").onclick = async () => {
+  const order = state.admin.selectedOrder;
+  if (!order) return;
+
+  if (!confirm("ปฏิเสธใบสั่งซื้อนี้?")) return;
+
+  // TODO: implement rejectOrder API later
+  closeAdminOrderDetail();
+  await renderAdminOrders();
+};
+
+</script>
+
 
   
   <!-- ===============================
