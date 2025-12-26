@@ -781,19 +781,17 @@
        =============================== -->
 <script>
   const state = {
-    products: [
-      { id: 1, name: "สินค้า A", stock: 120 },
-      { id: 2, name: "สินค้า B", stock: 80 }
-    ],
+    products: [], // 🔴 FROM BACKEND ONLY
     cart: [],
     currentOrder: null,
     selectedProduct: null,
     admin: {
       loggedIn: false,
-      selectedOrder: null // 🔴 ADD: ใบสั่งซื้อที่ Admin กำลังดู
+      selectedOrder: null
     }
   };
 </script>
+
 
   <!-- ===============================
        API LAYER (Google Apps Script)
@@ -857,6 +855,20 @@
   }).then(r => r.json());
 }
 
+</script>
+
+  <script>
+  // 🔴 ADD
+  API.fetchProducts = async () => {
+    const res = await fetch(API_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "fetchProducts"
+      })
+    });
+    return res.json();
+  };
 </script>
 
 
@@ -1390,43 +1402,45 @@
 
 
   <script>
- document.getElementById("btn-approve-order").onclick = async () => {
+document.getElementById("btn-approve-order").onclick = async () => {
   const order = state.admin.selectedOrder;
   if (!order) return;
 
   if (!confirm("ยืนยันใบสั่งซื้อและหักสต๊อก?")) return;
 
   const res = await API.approveOrder(order.id, order.items);
-
   if (!res.success) {
-    alert(res.error || "ไม่สามารถยืนยันใบสั่งซื้อได้");
+    alert(res.error || "Approve ไม่สำเร็จ");
     return;
   }
 
   closeAdminOrderDetail();
+
+  // 🔴 SYNC ใหม่
+  state.products = await API.fetchProducts();
+  renderProducts();
+
   await renderAdminOrders();
-  renderProducts(); // (ชั่วคราว — STEP 7 จะดึงจาก backend จริง)
 };
-
 </script>
-
-
   
   <!-- ===============================
      INIT APP
      =============================== -->
 <script>
-  function initApp() {
-    renderProducts();
-    renderCartIcon();
-    // ❌ ไม่เรียก renderAdminOrders ที่นี่
+  async function initApp() {
+    try {
+      state.products = await API.fetchProducts();
+      renderProducts();
+      renderCartIcon();
+    } catch (e) {
+      console.error(e);
+      alert("ไม่สามารถโหลดสินค้าได้");
+    }
   }
 
   initApp();
-</script>
+   </script>
 
-
-
-
-</body>
+ </body>
 </html>
