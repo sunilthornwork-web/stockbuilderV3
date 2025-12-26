@@ -731,20 +731,20 @@
   <!-- ===============================
        GLOBAL STATE
        =============================== -->
- <script>
+<script>
   const state = {
     products: [
       { id: 1, name: "สินค้า A", stock: 120 },
       { id: 2, name: "สินค้า B", stock: 80 }
     ],
     cart: [],
+    currentOrder: null, // 🔴 ADD THIS
     selectedProduct: null,
     admin: {
       loggedIn: false
     }
   };
 </script>
-
 
   <!-- ===============================
        API LAYER (Google Apps Script)
@@ -996,29 +996,25 @@
 
   <script>
   function renderOrderSheet() {
-  const body = document.getElementById("order-items");
-  body.innerHTML = "";
+    const body = document.getElementById("order-items");
+    body.innerHTML = "";
 
-  const order = state.currentOrder;
-  if (!order) return;
+    if (!state.currentOrder) return; // 🔒 GUARD
 
-  document.getElementById("order-date").textContent =
-    new Date(order.createdAt).toLocaleString("th-TH");
+    document.getElementById("order-date").textContent =
+      new Date(state.currentOrder.createdAt).toLocaleString("th-TH");
 
-  order.items.forEach(item => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${item.name}</td>
-      <td align="center">${item.qty}</td>
-      <td>${item.user}</td>
-    `;
-    body.appendChild(tr);
-  });
-}
-
+    state.currentOrder.items.forEach(item => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${item.name}</td>
+        <td align="center">${item.qty}</td>
+        <td>${item.user}</td>
+      `;
+      body.appendChild(tr);
+    });
+  }
 </script>
-
-
 
 
   <!-- ===============================
@@ -1219,18 +1215,25 @@
   async function createOrderFromCart() {
     if (state.cart.length === 0) return;
 
+    const snapshot = {
+      id: Date.now(),
+      items: JSON.parse(JSON.stringify(state.cart)),
+      createdAt: new Date().toISOString(),
+      status: "PENDING"
+    };
+
     try {
-      // 🔴 SEND TO BACKEND
-      const result = await API.createOrder(state.cart);
+      const result = await API.createOrder(snapshot.items);
 
       if (!result.success) {
         alert("ไม่สามารถสร้างใบสั่งซื้อได้");
         return;
       }
 
-      console.log("Order created:", result.orderId);
+      // 🔴 KEY: เก็บ snapshot ไว้ render / export
+      state.currentOrder = snapshot;
 
-      // 🔒 Viewer ได้ไฟล์แล้ว → ล้าง cart
+      // ล้าง cart
       state.cart = [];
       renderCartIcon();
 
@@ -1245,37 +1248,7 @@
   <!-- ===============================
        ADMIN FLOW LOGIC
        =============================== -->
-  <script>
-  function openOrderApproval(orderId) {
-    const order = state.orders.find(o => o.id === orderId);
-    if (!order) return;
-
-    const ok = confirm(
-      `ยืนยันใบสั่งซื้อ #${order.id} ?\n` +
-      `มี ${order.items.length} รายการ`
-    );
-
-    if (!ok) {
-      order.status = "REJECTED";
-      renderAdminOrders();
-      return;
-    }
-
-    // APPROVED → หักสต๊อก
-    order.items.forEach(item => {
-      const product = state.products.find(p => p.id === item.productId);
-      if (product) {
-        product.stock -= item.qty;
-      }
-    });
-
-    order.status = "APPROVED";
-    renderAdminOrders();
-    renderProducts();
-  }
-</script>
-
- 
+   
   <script>
   document.getElementById("btn-admin-login").onclick = () => {
     state.admin.loggedIn = true;
@@ -1287,10 +1260,6 @@
     renderAdminOrders();
   };
 </script>
-
-
-
-
 
   
   <!-- ===============================
