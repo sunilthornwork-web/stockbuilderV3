@@ -738,8 +738,6 @@
       { id: 2, name: "สินค้า B", stock: 80 }
     ],
     cart: [],
-    orders: [],            // 🔴 NEW: Order Inbox
-    currentOrder: null, // ✅ ADD
     selectedProduct: null,
     admin: {
       loggedIn: false
@@ -752,26 +750,70 @@
        API LAYER (Google Apps Script)
        =============================== -->
   <script>
-    const API = {
-      fetchProducts() {},
-      createProduct() {},
-      updateProduct() {},
-      stockIn() {},
-      stockOut() {},
-      fetchStockHistory() {}
-    };
-  </script>
+  const API_ENDPOINT =
+    "https://script.google.com/macros/s/AKfycby5H_jyKgM0l0XWzpzO4pBRvdfjQuXJppaNJuXrmAXN6RuDGpg0W42TmDtactLJrqMz/exec";
+
+  const API = {
+    async createOrder(items) {
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          action: "createOrder",
+          payload: {
+            items
+          }
+        })
+      });
+
+      return res.json();
+    },
+
+    async fetchOrders() {
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          action: "fetchOrders"
+        })
+      });
+
+      return res.json();
+    },
+
+    async approveOrder(orderId) {
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          action: "approveOrder",
+          payload: { orderId }
+        })
+      });
+
+      return res.json();
+    }
+  };
+</script>
+
 
   <!-- ===============================
        RENDER FUNCTIONS
        =============================== -->
 
   <script>
-  function renderAdminOrders() {
+  async function renderAdminOrders() {
     const box = document.getElementById("admin-order-list");
     box.innerHTML = "";
 
-    const pending = state.orders.filter(o => o.status === "PENDING");
+    const orders = await API.fetchOrders();
+    const pending = orders.filter(o => o.status === "PENDING");
 
     if (pending.length === 0) {
       box.innerHTML = `
@@ -799,11 +841,24 @@
         <div class="admin-row-action">›</div>
       `;
 
-      div.onclick = () => openOrderApproval(order.id);
+      div.onclick = async () => {
+        const ok = confirm(
+          "ยืนยันใบสั่งซื้อนี้?\n" +
+          `มี ${order.items.length} รายการ`
+        );
+
+        if (!ok) return;
+
+        await API.approveOrder(order.id);
+        await renderAdminOrders();
+        renderProducts(); // stock เปลี่ยน → update UI
+      };
+
       box.appendChild(div);
     });
   }
 </script>
+
 
   
   <script>
@@ -1161,26 +1216,29 @@
 
 
 <script>
-  function createOrderFromCart() {
-  if (state.cart.length === 0) return;
+  async function createOrderFromCart() {
+    if (state.cart.length === 0) return;
 
-  const order = {
-    id: Date.now(),
-    items: JSON.parse(JSON.stringify(state.cart)),
-    createdAt: new Date().toISOString(),
-    status: "PENDING"
-  };
+    try {
+      // 🔴 SEND TO BACKEND
+      const result = await API.createOrder(state.cart);
 
-  state.orders.push(order);
-  state.currentOrder = order; // ✅ สำคัญมาก
-}
-</script>
+      if (!result.success) {
+        alert("ไม่สามารถสร้างใบสั่งซื้อได้");
+        return;
+      }
 
-  <script>
-  document.getElementById("btn-go-add-to-cart").onclick = () => {
-    closeProductDetail();
-    openAddToCartSheet(state.selectedProduct); // ใช้ของเดิม
-  };
+      console.log("Order created:", result.orderId);
+
+      // 🔒 Viewer ได้ไฟล์แล้ว → ล้าง cart
+      state.cart = [];
+      renderCartIcon();
+
+    } catch (err) {
+      console.error(err);
+      alert("เกิดข้อผิดพลาดในการเชื่อมต่อระบบ");
+    }
+  }
 </script>
 
 
@@ -1225,10 +1283,11 @@
     document.getElementById("admin-login").classList.add("hidden");
     document.getElementById("admin-dashboard").classList.remove("hidden");
 
-    // 🔴 สำคัญ: render Orders หลัง login เท่านั้น
+    // 🔴 CHANGED: ดึง Order จริงจาก Backend
     renderAdminOrders();
   };
 </script>
+
 
 
 
