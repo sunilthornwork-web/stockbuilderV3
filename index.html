@@ -537,7 +537,12 @@
          =============================== -->
     <section id="order-preview" class="hidden">
 
-  <div class="card" id="order-sheet">
+  <div class="card" id="order-sheet" style="
+  padding: 32px 28px;
+  margin: 24px;
+  border-radius: 18px;
+  background: #ffffff;
+">
     <h2 style="text-align:center;margin-bottom:12px;">ใบสั่งซื้อ</h2>
 
     <div class="muted" style="text-align:center;margin-bottom:16px;">
@@ -1090,7 +1095,10 @@
 
     const source = document.getElementById("order-sheet");
 
-    // 🔴 CHANGED: clone DOM เพื่อความคม
+    // 🔴 FIX: กำหนด scale ให้ชัด (ความคม)
+    const scale = 3;
+
+    // clone DOM เพื่อความคม
     const clone = source.cloneNode(true);
     clone.style.background = "#ffffff";
     clone.style.color = "#000000";
@@ -1098,15 +1106,17 @@
     clone.style.margin = "0";
 
     const rect = source.getBoundingClientRect();
-    const scale = 3; // 🔴 CHANGED: เพิ่มความคม (2 → 3)
+
+    // 🔴 Safe area รอบเอกสาร
+    const padding = 40;
 
     const canvas = document.createElement("canvas");
-    canvas.width = rect.width * scale;
-    canvas.height = rect.height * scale;
+    canvas.width = (rect.width + padding * 2) * scale;
+    canvas.height = (rect.height + padding * 2) * scale;
 
     const ctx = canvas.getContext("2d");
 
-    // 🔴 CHANGED: พื้นหลังขาว (กันโปร่งใส)
+    // พื้นหลังขาว (กันโปร่งใส)
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -1124,7 +1134,7 @@
 
     const img = new Image();
     img.onload = () => {
-      ctx.drawImage(img, 0, 0);
+      ctx.drawImage(img, padding, padding);
 
       const link = document.createElement("a");
       link.download = "order.png";
@@ -1136,7 +1146,7 @@
       setTimeout(() => {
         if (confirm("สร้างใบสั่งซื้อเรียบร้อย\nต้องการล้างตะกร้าเพื่อเริ่มใหม่หรือไม่?")) {
           state.cart = [];
-          state.currentOrder = null; // 🔴 ADD THIS
+          state.currentOrder = null;
           renderCartIcon();
 
           document.getElementById("order-preview").classList.add("hidden");
@@ -1148,6 +1158,7 @@
     img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(data);
   };
 </script>
+
 
 <script>
   function createOrderFromCart() {
