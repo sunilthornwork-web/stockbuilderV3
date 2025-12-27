@@ -38,6 +38,7 @@
     border-radius: 18px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.06);
     overflow: hidden;
+    cursor: pointer;
   }
 
   .card img {
@@ -73,6 +74,70 @@
     color: #888;
     margin-top: 40px;
   }
+
+  /* ===== Bottom Sheet ===== */
+  .sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.25);
+    display: none;
+    z-index: 100;
+  }
+
+  .sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: -100%;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(16px);
+    border-radius: 22px 22px 0 0;
+    padding: 20px;
+    transition: bottom 0.3s ease;
+    z-index: 101;
+  }
+
+  .sheet.show {
+    bottom: 0;
+  }
+
+  .sheet-handle {
+    width: 36px;
+    height: 5px;
+    background: #ccc;
+    border-radius: 3px;
+    margin: 0 auto 12px;
+  }
+
+  .sheet img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 14px;
+    background: #e5e5ea;
+    margin-bottom: 12px;
+  }
+
+  .qty-control {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+  }
+
+  .qty-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    font-size: 22px;
+    background: #e5e5ea;
+  }
+
+  .qty-value {
+    font-size: 18px;
+    font-weight: 600;
+  }
 </style>
 </head>
 <body>
@@ -83,10 +148,16 @@
   <div class="empty">Loading…</div>
 </div>
 
+<!-- Bottom Sheet -->
+<div id="backdrop" class="sheet-backdrop"></div>
+<div id="sheet" class="sheet"></div>
+
 <script>
 /* ================= GLOBAL STATE ================= */
 const state = {
-  products: []
+  products: [],
+  selectedProduct: null,
+  qty: 1
 };
 
 /* ================= API LAYER (Google Apps Script) ================= */
@@ -113,6 +184,7 @@ function renderProducts() {
 
     const card = document.createElement("div");
     card.className = "card";
+    card.onclick = () => openSheet(p);
 
     card.innerHTML = `
       <img src="${p.image || ""}" />
@@ -127,11 +199,55 @@ function renderProducts() {
   });
 }
 
+function renderSheet() {
+  const p = state.selectedProduct;
+  const sheet = document.getElementById("sheet");
+  if (!p) return;
+
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <img src="${p.image || ""}" />
+    <div class="name">${p.name}</div>
+    <div class="price">฿${Number(p.price).toLocaleString()}</div>
+    <div class="stock">Available: ${p.stock}</div>
+
+    <div class="qty-control">
+      <button class="qty-btn" onclick="changeQty(-1)">−</button>
+      <div class="qty-value">${state.qty}</div>
+      <button class="qty-btn" onclick="changeQty(1)">+</button>
+    </div>
+  `;
+}
+
 /* ================= VIEWER FLOW ================= */
-// STEP 1: View products only
+function openSheet(product) {
+  state.selectedProduct = product;
+  state.qty = product.stock > 0 ? 1 : 0;
+
+  renderSheet();
+  document.getElementById("backdrop").style.display = "block";
+  document.getElementById("sheet").classList.add("show");
+}
+
+function closeSheet() {
+  document.getElementById("backdrop").style.display = "none";
+  document.getElementById("sheet").classList.remove("show");
+  state.selectedProduct = null;
+}
+
+function changeQty(delta) {
+  const max = state.selectedProduct.stock;
+  let next = state.qty + delta;
+  if (next < 0) next = 0;
+  if (next > max) next = max;
+  state.qty = next;
+  renderSheet();
+}
+
+document.getElementById("backdrop").onclick = closeSheet;
 
 /* ================= ADMIN FLOW ================= */
-// (ยังไม่เริ่มใน STEP นี้)
+// ยังไม่เริ่ม
 
 /* ================= INIT APP ================= */
 (async function init() {
