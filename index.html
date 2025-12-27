@@ -969,7 +969,7 @@
     })
   });
   return res.json();
-}
+},
 
     async rejectOrder(orderId) {
   return fetch(API_ENDPOINT, {
@@ -980,7 +980,8 @@
       payload: { orderId }
     })
   }).then(r => r.json());
-}
+ }
+};
 
 </script>
 
