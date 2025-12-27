@@ -36,7 +36,6 @@
   .price{color:#007aff;margin-top:4px;}
   .stock{font-size:14px;color:#666;}
 
-  /* Bottom Sheets */
   .backdrop{
     position:fixed;inset:0;
     background:rgba(0,0,0,.25);
@@ -82,11 +81,9 @@
 
 <div id="app" class="container"></div>
 
-<!-- Product Sheet -->
 <div id="productBackdrop" class="backdrop"></div>
 <div id="productSheet" class="sheet"></div>
 
-<!-- Cart Sheet -->
 <div id="cartBackdrop" class="backdrop"></div>
 <div id="cartSheet" class="sheet"></div>
 
@@ -100,8 +97,25 @@ const state={
 };
 
 /* ================= API LAYER ================= */
-const API_URL = "https://script.google.com/macros/s/AKfycby5H_jyKgM0l0XWzpzO4pBRvdfjQuXJppaNJuXrmAXN6RuDGpg0W42TmDtactLJrqMz/exec";
+const API_URL="https://script.google.com/macros/s/AKfycby5H_jyKgM0l0XWzpzO4pBRvdfjQuXJppaNJuXrmAXN6RuDGpg0W42TmDtactLJrqMz/exec";
+
 const fetchProducts=()=>fetch(`${API_URL}?action=products`).then(r=>r.json());
+
+async function createOrder() {
+  const total = state.cart.reduce((s,i)=>s+i.price*i.qty,0);
+
+  const res = await fetch(API_URL, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({
+      action: "createOrder",
+      items: state.cart,
+      total: total
+    })
+  });
+
+  return await res.json();
+}
 
 /* ================= RENDER FUNCTIONS ================= */
 function renderProducts(){
@@ -136,6 +150,7 @@ function renderProductSheet(){
 
 function renderCart(){
   cartSheet.innerHTML="<h3>Cart</h3>";
+
   if(state.cart.length===0){
     cartSheet.innerHTML+=`<div style="color:#888">Cart is empty</div>`;
     return;
@@ -159,14 +174,16 @@ function renderCart(){
   });
 
   const total=state.cart.reduce((s,i)=>s+i.price*i.qty,0);
-  cartSheet.innerHTML+=`<div class="total">Total: ฿${total}</div>`;
+  cartSheet.innerHTML+=`
+    <div class="total">Total: ฿${total}</div>
+    <button class="btn btn-primary" style="width:100%;margin-top:12px"
+      onclick="submitOrder()">Create Order</button>`;
 }
 
 function renderBadge(){
-  const b=cartBadge;
   const c=state.cart.length;
-  b.style.display=c?"inline-block":"none";
-  b.textContent=c;
+  cartBadge.style.display=c?"inline-block":"none";
+  cartBadge.textContent=c;
 }
 
 /* ================= VIEWER FLOW ================= */
@@ -194,6 +211,14 @@ function addToCart(){
   });
   renderBadge();
   closeProduct();
+}
+
+async function submitOrder(){
+  const res = await createOrder();
+  alert("Order created: " + res.orderId);
+  state.cart=[];
+  renderBadge();
+  closeCart();
 }
 
 function openCart(){
