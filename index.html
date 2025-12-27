@@ -923,71 +923,57 @@
   <!-- ===============================
        API LAYER (Google Apps Script)
        =============================== -->
-  <<script>
+  <script>
 const API_ENDPOINT =
   "https://script.google.com/macros/s/AKfycby5H_jyKgM0l0XWzpzO4pBRvdfjQuXJppaNJuXrmAXN6RuDGpg0W42TmDtactLJrqMz/exec";
 
+async function callAPI(action, payload = {}) {
+  const data = { action, payload };
+
+  const res = await fetch(API_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+    },
+    body: "data=" + encodeURIComponent(JSON.stringify(data))
+  });
+
+  return res.json();
+}
+
 const API = {
-  async createOrder(items) {
-    const res = await fetch(API_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "createOrder",
-        payload: { items }
-      })
-    });
-    return res.json();
-  },
+  fetchProducts: () => callAPI("fetchProducts"),
+  createProduct: (p) => callAPI("createProduct", p),
 
-  async fetchOrders() {
-    const res = await fetch(API_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "fetchOrders" })
-    });
-    return res.json();
-  },
+  fetchOrders: () => callAPI("fetchOrders"),
+  createOrder: (items) => callAPI("createOrder", { items }),
+  approveOrder: (orderId, items) =>
+    callAPI("approveOrder", { orderId, items }),
+  rejectOrder: (orderId) =>
+    callAPI("rejectOrder", { orderId }),
 
-  async approveOrder(orderId, items) {
-    const res = await fetch(API_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "approveOrder",
-        payload: { orderId, items }
-      })
-    });
-    return res.json();
-  },
-
-  async rejectOrder(orderId) {
-    const res = await fetch(API_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "rejectOrder",
-        payload: { orderId }
-      })
-    });
-    return res.json();
-  }
+  adjustStock: (p) => callAPI("adjustStock", {
+    ...p,
+    actionBy: "admin"
+  })
 };
 </script>
 
 
   <script>
-  // 🔴 ADD
   API.fetchProducts = async () => {
-    const res = await fetch(API_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "fetchProducts"
-      })
-    });
-    return res.json();
-  };
+  const payload = { action: "fetchProducts" };
+
+  const res = await fetch(API_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+    },
+    body: "data=" + encodeURIComponent(JSON.stringify(payload))
+  });
+
+  return res.json();
+};
 
     API.adjustStock = async ({ productId, qty, type }) => {
   const res = await fetch(API_ENDPOINT, {
