@@ -931,16 +931,10 @@ const API_ENDPOINT =
 async function callAPI(action, payload = {}) {
   const data = { action, payload };
 
-  const res = await fetch(API_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-    },
-    body: "data=" + encodeURIComponent(JSON.stringify(data))
-  });
+  const res = await fetch(API_ENDPOINT, options);
+const text = await res.text();
+return JSON.parse(text);
 
-  return res.json();
-}
 
 const API = {
   fetchProducts: () => callAPI("fetchProducts"),
