@@ -1417,6 +1417,23 @@ if (qty > product.stock) {
     document.getElementById("order-preview").classList.add("hidden");
     document.getElementById("cart-view").classList.remove("hidden");
   };
+
+   document.getElementById("btn-reject-order").onclick = async () => {
+  const order = state.admin.selectedOrder;
+  if (!order) return;
+
+  if (!confirm("ยืนยันปฏิเสธใบสั่งซื้อ?")) return;
+
+  const res = await API.rejectOrder(order.id);
+  if (!res.success) {
+    alert(res.error || "Reject ไม่สำเร็จ");
+    return;
+  }
+
+  closeAdminOrderDetail();
+  await renderAdminOrders();
+};
+
 </script>
 
 
@@ -1671,15 +1688,18 @@ function openAdminProductDetail(product) {
 const btnCloseProductDetail =
   document.getElementById("btn-close-product-detail");
 
-if (btnCloseProductDetail) {
-  btnCloseProductDetail.onclick = () => {
-    document
-      .getElementById("admin-product-detail-sheet")
-      .classList.add("hidden");
+btnCloseProductDetail.onclick = () => {
+  document
+    .getElementById("admin-product-detail-sheet")
+    .classList.add("hidden");
 
-    state.selectedProduct = null;
-  };
-}
+  document.querySelector(
+    'input[name="stock-type"][value="IN"]'
+  ).checked = true;
+
+  state.selectedProduct = null;
+ };
+
 </script>
 
   <script>
