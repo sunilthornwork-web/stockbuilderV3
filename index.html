@@ -1073,6 +1073,50 @@
   }
 </script>
 
+<script>
+async function renderAdminProducts() {
+  const box = document.getElementById("admin-product-list");
+  box.innerHTML = "";
+
+  const products = await API.fetchProducts();
+
+  if (!products || products.length === 0) {
+    box.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📦</div>
+        <div class="empty-title">ยังไม่มีสินค้า</div>
+        <div class="empty-desc">เพิ่มสินค้าเพื่อเริ่มจัดการสต๊อก</div>
+      </div>
+    `;
+    return;
+  }
+
+  products.forEach(p => {
+    const row = document.createElement("div");
+    row.className = "admin-row";
+
+    row.innerHTML = `
+      <div>
+        <div class="admin-row-label">
+          ${p.name}
+          ${p.status !== "ACTIVE" ? " (ปิดขาย)" : ""}
+        </div>
+        <div class="admin-row-desc">
+          คงเหลือ ${p.stock} · ราคา ฿${p.price}
+        </div>
+      </div>
+      <div class="admin-row-action">›</div>
+    `;
+
+    // 🔜 STEP 8.2.x จะเอาไว้เปิด detail / edit
+    row.onclick = () => {
+      console.log("Selected product:", p);
+    };
+
+    box.appendChild(row);
+  });
+}
+</script>
 
   <!-- ===============================
      VIEWER FLOW LOGIC
@@ -1338,15 +1382,16 @@ if (qty > product.stock) {
        =============================== -->
    
   <script>
-  document.getElementById("btn-admin-login").onclick = () => {
+  document.getElementById("btn-admin-login").onclick = async () => {
     state.admin.loggedIn = true;
 
     document.getElementById("admin-login").classList.add("hidden");
     document.getElementById("admin-dashboard").classList.remove("hidden");
 
-    // 🔴 CHANGED: ดึง Order จริงจาก Backend
-    renderAdminOrders();
+    await renderAdminOrders();
+    await renderAdminProducts(); // ✅ ADD
   };
+
 </script>
 
   <script>
