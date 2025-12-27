@@ -789,9 +789,6 @@
   </div>
 </div>
 
-  <!-- ===============================
-     Admin Order Detail Sheet
-     =============================== -->
 <!-- ===============================
      Admin Order Detail Sheet
      =============================== -->
@@ -833,6 +830,38 @@
     <button id="btn-approve-order">ยืนยันใบสั่งซื้อ</button>
     <button class="secondary" id="btn-reject-order">ปฏิเสธ</button>
     <button class="secondary" id="btn-close-admin-order">ปิด</button>
+
+  </div>
+</div>
+
+  <div id="admin-add-product-sheet" class="sheet hidden">
+  <div class="sheet-card">
+
+    <h2>เพิ่มสินค้าใหม่</h2>
+
+    <div id="add-product-preview"
+      style="width:100%;height:180px;
+      border-radius:16px;
+      background:#eee;
+      background-size:cover;
+      background-position:center;
+      margin-bottom:16px;">
+    </div>
+
+    <label>ชื่อสินค้า</label>
+    <input id="add-product-name" placeholder="ชื่อสินค้า" />
+
+    <label>ราคา</label>
+    <input id="add-product-price" type="number" placeholder="0" />
+
+    <label>สต๊อกเริ่มต้น</label>
+    <input id="add-product-stock" type="number" placeholder="0" />
+
+    <label>รูป (URL)</label>
+    <input id="add-product-image" placeholder="https://..." />
+
+    <button id="btn-create-product">เพิ่มสินค้า</button>
+    <button class="secondary" id="btn-cancel-add-product">ยกเลิก</button>
 
   </div>
 </div>
@@ -1140,7 +1169,9 @@ async function renderAdminProducts() {
   const box = document.getElementById("admin-product-list");
   box.innerHTML = "";
 
-  const products = await API.fetchProducts();
+  state.products = await API.fetchProducts();
+  const products = state.products;
+
 
   if (!products || products.length === 0) {
     box.innerHTML = `
@@ -1596,6 +1627,66 @@ if (btnCloseProductDetail) {
   };
 }
 </script>
+
+  <script>
+const addProductSheet =
+  document.getElementById("admin-add-product-sheet");
+
+document.getElementById("btn-add-product").onclick = () => {
+  clearAddProductForm();
+  addProductSheet.classList.remove("hidden");
+};
+
+function clearAddProductForm() {
+  document.getElementById("add-product-name").value = "";
+  document.getElementById("add-product-price").value = "";
+  document.getElementById("add-product-stock").value = "";
+  document.getElementById("add-product-image").value = "";
+  document.getElementById("add-product-preview").style.backgroundImage = "";
+}
+</script>
+
+  <script>
+document.getElementById("add-product-image").oninput = (e) => {
+  document.getElementById("add-product-preview").style.backgroundImage =
+    `url('${e.target.value}')`;
+};
+</script>
+
+  <script>
+document.getElementById("btn-create-product").onclick = async () => {
+  const name  = document.getElementById("add-product-name").value.trim();
+  const price = Number(document.getElementById("add-product-price").value);
+  const stock = Number(document.getElementById("add-product-stock").value);
+  const image = document.getElementById("add-product-image").value.trim();
+
+  if (!name) {
+    alert("กรุณากรอกชื่อสินค้า");
+    return;
+  }
+
+  const res = await fetch(API_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "createProduct",
+      payload: { name, price, stock, image }
+    })
+  }).then(r => r.json());
+
+  if (!res.success) {
+    alert(res.error || "เพิ่มสินค้าไม่สำเร็จ");
+    return;
+  }
+
+  document
+    .getElementById("admin-add-product-sheet")
+    .classList.add("hidden");
+
+  await renderAdminProducts(); // 🔴 refresh list
+};
+</script>
+
 
   
   <!-- ===============================
