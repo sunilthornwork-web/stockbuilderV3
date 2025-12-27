@@ -866,7 +866,39 @@
   </div>
 </div>
 
-  
+  <!-- ===============================
+     Admin Stock Adjust Sheet
+     =============================== -->
+<div id="admin-stock-adjust-sheet" class="sheet hidden">
+  <div class="sheet-card">
+
+    <h2>ปรับสต๊อกสินค้า</h2>
+
+    <div class="muted" id="stock-adjust-product-name">
+      สินค้า -
+    </div>
+
+    <label>ประเภท</label>
+    <div style="display:flex;gap:12px;margin-bottom:12px;">
+      <label>
+        <input type="radio" name="stock-type" value="IN" checked />
+        รับเข้า
+      </label>
+      <label>
+        <input type="radio" name="stock-type" value="OUT" />
+        ส่งออก
+      </label>
+    </div>
+
+    <label>จำนวน</label>
+    <input id="stock-adjust-qty" type="number" placeholder="เช่น 10" />
+
+    <button id="btn-confirm-adjust-stock">บันทึก</button>
+    <button class="secondary" id="btn-cancel-adjust-stock">ยกเลิก</button>
+
+  </div>
+</div>
+
   <!-- ===============================
        GLOBAL STATE
        =============================== -->
