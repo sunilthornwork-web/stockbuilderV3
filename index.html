@@ -996,6 +996,25 @@
     });
     return res.json();
   };
+
+    API.adjustStock = async ({ productId, qty, type }) => {
+  const res = await fetch(API_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "adjustStock",
+      payload: {
+        productId,
+        qty,
+        type,
+        actionBy: "admin"
+      }
+    })
+  });
+
+  return res.json();
+};
+
 </script>
 
 
@@ -1673,22 +1692,53 @@ const stockProductName =
 const stockQtyInput =
   document.getElementById("stock-adjust-qty");
 
-document.getElementById("btn-confirm-adjust-stock").onclick = () => {
+document.getElementById("btn-confirm-adjust-stock").onclick = async () => {
   const qty = Number(stockQtyInput.value);
   const type = document.querySelector(
     'input[name="stock-type"]:checked'
   ).value;
+
+  const product = state.selectedProduct;
+  if (!product) return;
 
   if (!qty || qty <= 0) {
     alert("กรุณากรอกจำนวน");
     return;
   }
 
-  // STEP 8.3.2 จะยิง backend ตรงนี้
-  alert(`เตรียมปรับสต๊อก ${type} จำนวน ${qty}`);
+  // 🔒 guard ฝั่ง UI (กัน OUT เกิน)
+  if (type === "OUT" && qty > product.stock) {
+    alert(`สต๊อกไม่พอ (เหลือ ${product.stock})`);
+    return;
+  }
 
-  stockSheet.classList.add("hidden");
-};    
+  try {
+    const res = await API.adjustStock({
+      productId: product.id,
+      qty,
+      type
+    });
+
+    if (!res.success) {
+      alert(res.error || "ปรับสต๊อกไม่สำเร็จ");
+      return;
+    }
+
+    // ✅ ปิด popup
+    stockSheet.classList.add("hidden");
+
+    // 🔄 reload products ใหม่จาก backend
+    state.products = await API.fetchProducts();
+
+    // 🔁 sync ทุกหน้า
+    renderAdminProducts();
+    renderProducts();
+
+  } catch (err) {
+    console.error(err);
+    alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+  }
+};
 
 // เปิด popup
 document.getElementById("btn-open-adjust-stock").onclick = () => {
