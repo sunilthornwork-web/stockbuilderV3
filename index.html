@@ -960,42 +960,6 @@ const API = {
 </script>
 
 
-  <script>
-  API.fetchProducts = async () => {
-  const payload = { action: "fetchProducts" };
-
-  const res = await fetch(API_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-    },
-    body: "data=" + encodeURIComponent(JSON.stringify(payload))
-  });
-
-  return res.json();
-};
-
-    API.adjustStock = async ({ productId, qty, type }) => {
-  const res = await fetch(API_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: "adjustStock",
-      payload: {
-        productId,
-        qty,
-        type,
-        actionBy: "admin"
-      }
-    })
-  });
-
-  return res.json();
-};
-
-</script>
-
-
   <!-- ===============================
        RENDER FUNCTIONS
        =============================== -->
@@ -1793,19 +1757,13 @@ document.getElementById("btn-create-product").onclick = async () => {
     return;
   }
 
-  // ✅ FIX CORS: ใช้ form-urlencoded
-  const payload = {
-    action: "createProduct",
-    payload: { name, price, stock, image }
-  };
+    const res = await API.createProduct({
+  name,
+  price,
+  stock,
+  image
+});
 
-  const res = await fetch(API_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-    },
-    body: "data=" + encodeURIComponent(JSON.stringify(payload))
-  }).then(r => r.json());
 
   if (!res.success) {
     alert(res.error || "เพิ่มสินค้าไม่สำเร็จ");
