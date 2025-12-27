@@ -1807,13 +1807,18 @@ document.getElementById("btn-create-product").onclick = async () => {
     return;
   }
 
+  // ✅ FIX CORS: ใช้ form-urlencoded
+  const payload = {
+    action: "createProduct",
+    payload: { name, price, stock, image }
+  };
+
   const res = await fetch(API_ENDPOINT, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: "createProduct",
-      payload: { name, price, stock, image }
-    })
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+    },
+    body: "data=" + encodeURIComponent(JSON.stringify(payload))
   }).then(r => r.json());
 
   if (!res.success) {
@@ -1825,9 +1830,10 @@ document.getElementById("btn-create-product").onclick = async () => {
     .getElementById("admin-add-product-sheet")
     .classList.add("hidden");
 
-  await renderAdminProducts(); // 🔴 refresh list
+  await renderAdminProducts();
 };
 </script>
+
 
 
   
