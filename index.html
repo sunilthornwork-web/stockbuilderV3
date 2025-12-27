@@ -23,18 +23,35 @@
     position: sticky;
     top: 0;
     z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .cart-icon {
+    position: relative;
+    font-size: 22px;
+  }
+
+  .badge {
+    position: absolute;
+    top: -6px;
+    right: -10px;
+    background: #ff3b30;
+    color: #fff;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 12px;
   }
 
   .container {
     padding: 16px;
     display: grid;
-    grid-template-columns: 1fr;
     gap: 16px;
   }
 
   .card {
     background: rgba(255,255,255,0.9);
-    backdrop-filter: blur(10px);
     border-radius: 18px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.06);
     overflow: hidden;
@@ -45,29 +62,15 @@
     width: 100%;
     height: 180px;
     object-fit: cover;
-    background: #e5e5ea;
   }
 
   .card-body {
     padding: 14px;
   }
 
-  .name {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 6px;
-  }
-
-  .price {
-    font-size: 16px;
-    color: #007aff;
-    margin-bottom: 4px;
-  }
-
-  .stock {
-    font-size: 14px;
-    color: #666;
-  }
+  .name { font-size: 18px; font-weight: 600; }
+  .price { color: #007aff; margin-top: 4px; }
+  .stock { font-size: 14px; color: #666; }
 
   .empty {
     text-align: center;
@@ -75,7 +78,7 @@
     margin-top: 40px;
   }
 
-  /* ===== Bottom Sheet ===== */
+  /* Bottom Sheet */
   .sheet-backdrop {
     position: fixed;
     inset: 0;
@@ -90,16 +93,13 @@
     right: 0;
     bottom: -100%;
     background: rgba(255,255,255,0.95);
-    backdrop-filter: blur(16px);
     border-radius: 22px 22px 0 0;
     padding: 20px;
     transition: bottom 0.3s ease;
     z-index: 101;
   }
 
-  .sheet.show {
-    bottom: 0;
-  }
+  .sheet.show { bottom: 0; }
 
   .sheet-handle {
     width: 36px;
@@ -109,20 +109,11 @@
     margin: 0 auto 12px;
   }
 
-  .sheet img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 14px;
-    background: #e5e5ea;
-    margin-bottom: 12px;
-  }
-
   .qty-control {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    margin-top: 16px;
+    align-items: center;
+    margin: 16px 0;
   }
 
   .qty-btn {
@@ -131,24 +122,34 @@
     border-radius: 50%;
     border: none;
     font-size: 22px;
-    background: #e5e5ea;
   }
 
-  .qty-value {
-    font-size: 18px;
+  .add-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    background: #007aff;
+    color: #fff;
+    font-size: 16px;
     font-weight: 600;
   }
 </style>
 </head>
 <body>
 
-<header>Products</header>
+<header>
+  <div>Products</div>
+  <div class="cart-icon">
+    🛒
+    <div id="cartBadge" class="badge" style="display:none">0</div>
+  </div>
+</header>
 
 <div id="app" class="container">
   <div class="empty">Loading…</div>
 </div>
 
-<!-- Bottom Sheet -->
 <div id="backdrop" class="sheet-backdrop"></div>
 <div id="sheet" class="sheet"></div>
 
@@ -157,15 +158,15 @@
 const state = {
   products: [],
   selectedProduct: null,
-  qty: 1
+  qty: 1,
+  cart: []
 };
 
-/* ================= API LAYER (Google Apps Script) ================= */
+/* ================= API LAYER ================= */
 const API_URL = "https://script.google.com/macros/s/AKfycby5H_jyKgM0l0XWzpzO4pBRvdfjQuXJppaNJuXrmAXN6RuDGpg0W42TmDtactLJrqMz/exec";
 
 async function fetchProducts() {
   const res = await fetch(`${API_URL}?action=products`);
-  if (!res.ok) throw new Error("API error");
   return await res.json();
 }
 
@@ -174,27 +175,19 @@ function renderProducts() {
   const app = document.getElementById("app");
   app.innerHTML = "";
 
-  if (state.products.length === 0) {
-    app.innerHTML = `<div class="empty">No products</div>`;
-    return;
-  }
-
   state.products.forEach(p => {
-    if (p.active !== true) return;
-
+    if (!p.active) return;
     const card = document.createElement("div");
     card.className = "card";
     card.onclick = () => openSheet(p);
-
     card.innerHTML = `
-      <img src="${p.image || ""}" />
+      <img src="${p.image || ""}">
       <div class="card-body">
         <div class="name">${p.name}</div>
         <div class="price">฿${Number(p.price).toLocaleString()}</div>
         <div class="stock">Stock: ${p.stock}</div>
       </div>
     `;
-
     app.appendChild(card);
   });
 }
@@ -202,63 +195,74 @@ function renderProducts() {
 function renderSheet() {
   const p = state.selectedProduct;
   const sheet = document.getElementById("sheet");
-  if (!p) return;
-
   sheet.innerHTML = `
     <div class="sheet-handle"></div>
-    <img src="${p.image || ""}" />
     <div class="name">${p.name}</div>
     <div class="price">฿${Number(p.price).toLocaleString()}</div>
     <div class="stock">Available: ${p.stock}</div>
 
     <div class="qty-control">
       <button class="qty-btn" onclick="changeQty(-1)">−</button>
-      <div class="qty-value">${state.qty}</div>
+      <div>${state.qty}</div>
       <button class="qty-btn" onclick="changeQty(1)">+</button>
     </div>
+
+    <button class="add-btn" onclick="addToCart()">Add to Cart</button>
   `;
 }
 
-/* ================= VIEWER FLOW ================= */
-function openSheet(product) {
-  state.selectedProduct = product;
-  state.qty = product.stock > 0 ? 1 : 0;
+function renderCartBadge() {
+  const badge = document.getElementById("cartBadge");
+  const count = state.cart.reduce((s,i)=>s+i.qty,0);
+  badge.style.display = count ? "block" : "none";
+  badge.textContent = count;
+}
 
+/* ================= VIEWER FLOW ================= */
+function openSheet(p) {
+  state.selectedProduct = p;
+  state.qty = p.stock > 0 ? 1 : 0;
   renderSheet();
-  document.getElementById("backdrop").style.display = "block";
-  document.getElementById("sheet").classList.add("show");
+  backdrop.style.display = "block";
+  sheet.classList.add("show");
 }
 
 function closeSheet() {
-  document.getElementById("backdrop").style.display = "none";
-  document.getElementById("sheet").classList.remove("show");
-  state.selectedProduct = null;
+  backdrop.style.display = "none";
+  sheet.classList.remove("show");
 }
 
-function changeQty(delta) {
+function changeQty(d) {
   const max = state.selectedProduct.stock;
-  let next = state.qty + delta;
-  if (next < 0) next = 0;
-  if (next > max) next = max;
-  state.qty = next;
+  state.qty = Math.min(max, Math.max(0, state.qty + d));
   renderSheet();
 }
 
-document.getElementById("backdrop").onclick = closeSheet;
+function addToCart() {
+  const p = state.selectedProduct;
+  const found = state.cart.find(i => i.productId === p.productId);
 
-/* ================= ADMIN FLOW ================= */
-// ยังไม่เริ่ม
+  if (found) {
+    found.qty = Math.min(found.qty + state.qty, p.stock);
+  } else {
+    state.cart.push({
+      productId: p.productId,
+      name: p.name,
+      price: p.price,
+      qty: state.qty
+    });
+  }
+
+  renderCartBadge();
+  closeSheet();
+}
+
+backdrop.onclick = closeSheet;
 
 /* ================= INIT APP ================= */
 (async function init() {
-  try {
-    state.products = await fetchProducts();
-    renderProducts();
-  } catch (e) {
-    document.getElementById("app").innerHTML =
-      `<div class="empty">Failed to load products</div>`;
-    console.error(e);
-  }
+  state.products = await fetchProducts();
+  renderProducts();
 })();
 </script>
 
