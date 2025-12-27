@@ -456,6 +456,46 @@
       font-weight: 700;
     }
 
+    .admin-product-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-product-thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.06);
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+.admin-product-info {
+  flex: 1;
+}
+
+.admin-product-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.admin-product-meta {
+  font-size: 13px;
+  color: var(--subtext);
+}
+
+.admin-product-actions {
+  font-size: 20px;
+  color: var(--subtext);
+}
+
+
   </style>
 
 </head>
@@ -506,6 +546,28 @@
   </div>
 
 </div>
+
+      <div id="admin-product-detail-sheet" class="sheet hidden">
+  <div class="sheet-card">
+
+    <h2>สินค้า</h2>
+
+    <label>ชื่อสินค้า</label>
+    <input id="edit-product-name" />
+
+    <label>ราคา</label>
+    <input id="edit-product-price" type="number" />
+
+    <label>รูปสินค้า (URL)</label>
+    <input id="edit-product-image" />
+
+    <button id="btn-save-product">บันทึก</button>
+    <button class="secondary" id="btn-toggle-product">ปิด / เปิด สินค้า</button>
+    <button class="secondary" id="btn-close-product-detail">ปิด</button>
+
+  </div>
+</div>
+
 
 
         <!-- render product cards here -->
@@ -1093,29 +1155,43 @@ async function renderAdminProducts() {
 
   products.forEach(p => {
     const row = document.createElement("div");
-    row.className = "admin-row";
+    row.className = "product-card selectable admin-product-card";
 
     row.innerHTML = `
-      <div>
-        <div class="admin-row-label">
-          ${p.name}
-          ${p.status !== "ACTIVE" ? " (ปิดขาย)" : ""}
-        </div>
-        <div class="admin-row-desc">
-          คงเหลือ ${p.stock} · ราคา ฿${p.price}
-        </div>
-      </div>
-      <div class="admin-row-action">›</div>
-    `;
+  <div class="product-info" style="display:flex;gap:12px;align-items:center;">
+    
+    <!-- รูปสินค้า -->
+    <div class="product-thumb"
+         style="
+           width:56px;
+           height:56px;
+           border-radius:12px;
+           background:#f0f0f0 url('${p.image || ""}') center/cover no-repeat;
+         ">
+    </div>
 
-    // 🔜 STEP 8.2.x จะเอาไว้เปิด detail / edit
-    row.onclick = () => {
-      console.log("Selected product:", p);
-    };
+    <!-- ข้อมูล -->
+    <div>
+      <div class="product-name">
+        ${p.name}
+        ${p.status === "INACTIVE" ? " (ปิดขาย)" : ""}
+      </div>
+      <div class="product-stock muted">
+        คงเหลือ ${p.stock} · ฿${p.price}
+      </div>
+    </div>
+
+  </div>
+
+  <div class="product-action">›</div>
+`;
+
+        row.onclick = () => openAdminProductDetail(p);
 
     box.appendChild(row);
   });
 }
+
 </script>
 
   <!-- ===============================
@@ -1487,6 +1563,40 @@ document.getElementById("btn-approve-order").onclick = async () => {
   await renderAdminOrders();
 };
 </script>
+
+<script>
+function openAdminProductDetail(product) {
+  state.selectedProduct = product;
+
+  document.getElementById("edit-product-name").value =
+    product.name || "";
+
+  document.getElementById("edit-product-price").value =
+    product.price || 0;
+
+  document.getElementById("edit-product-image").value =
+    product.image || "";
+
+  document
+    .getElementById("admin-product-detail-sheet")
+    .classList.remove("hidden");
+}
+
+// ✅ เวอร์ชันแข็งแรงกว่า (แทนของเดิม)
+const btnCloseProductDetail =
+  document.getElementById("btn-close-product-detail");
+
+if (btnCloseProductDetail) {
+  btnCloseProductDetail.onclick = () => {
+    document
+      .getElementById("admin-product-detail-sheet")
+      .classList.add("hidden");
+
+    state.selectedProduct = null;
+  };
+}
+</script>
+
   
   <!-- ===============================
      INIT APP
