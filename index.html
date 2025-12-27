@@ -8,83 +8,66 @@
 <!-- ================= UI STYLE ================= -->
 <style>
   body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    background: #f2f2f7;
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+    background:#f2f2f7;
   }
-
-  header {
-    padding: 16px;
-    font-size: 22px;
-    font-weight: 600;
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(12px);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .badge {
-    background: #ff3b30;
-    color: #fff;
-    border-radius: 12px;
-    padding: 2px 8px;
-    font-size: 12px;
-  }
-
-  .container { padding:16px; display:grid; gap:16px; }
-
-  .card {
-    background:#fff;
-    border-radius:18px;
-    box-shadow:0 8px 24px rgba(0,0,0,.06);
-    overflow:hidden;
-    cursor:pointer;
-  }
-
-  .card-body { padding:14px; }
-  .name { font-weight:600; }
-  .price { color:#007aff; margin-top:4px; }
-  .stock { font-size:14px; color:#666; }
-
-  .sheet-backdrop {
-    position:fixed; inset:0;
-    background:rgba(0,0,0,.25);
-    display:none; z-index:100;
-  }
-
-  .sheet {
-    position:fixed;
-    left:0; right:0; bottom:-100%;
-    background:#fff;
-    border-radius:22px 22px 0 0;
-    padding:20px;
-    transition:.3s;
-    z-index:101;
-  }
-
-  .sheet.show { bottom:0; }
-
-  input[type=number] {
-    width:100%;
-    padding:12px;
-    font-size:18px;
-    border-radius:12px;
-    border:1px solid #ddd;
-    margin:12px 0;
-  }
-
-  .add-btn {
-    width:100%;
-    padding:14px;
-    background:#007aff;
-    color:#fff;
-    border:none;
-    border-radius:14px;
-    font-size:16px;
+  header{
+    padding:16px;
+    font-size:22px;
     font-weight:600;
+    background:rgba(255,255,255,.85);
+    backdrop-filter:blur(12px);
+    position:sticky; top:0; z-index:10;
+    display:flex; justify-content:space-between;
+  }
+  .badge{
+    background:#ff3b30;color:#fff;
+    border-radius:12px;padding:2px 8px;
+    font-size:12px;
+  }
+  .container{padding:16px;display:grid;gap:16px;}
+  .card{
+    background:#fff;border-radius:18px;
+    box-shadow:0 8px 24px rgba(0,0,0,.06);
+    padding:14px;cursor:pointer;
+  }
+  .name{font-weight:600;}
+  .price{color:#007aff;margin-top:4px;}
+  .stock{font-size:14px;color:#666;}
+
+  /* Bottom Sheets */
+  .backdrop{
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.25);
+    display:none;z-index:100;
+  }
+  .sheet{
+    position:fixed;left:0;right:0;bottom:-100%;
+    background:#fff;border-radius:22px 22px 0 0;
+    padding:20px;transition:.3s;z-index:101;
+    max-height:80vh;overflow:auto;
+  }
+  .sheet.show{bottom:0;}
+  .sheet h3{margin:0 0 12px;}
+
+  input[type=number]{
+    width:70px;padding:8px;font-size:16px;
+    border-radius:10px;border:1px solid #ddd;
+  }
+  .btn{
+    padding:12px;border:none;border-radius:12px;
+    font-weight:600;
+  }
+  .btn-primary{background:#007aff;color:#fff;}
+  .btn-danger{background:#ff3b30;color:#fff;}
+  .cart-item{
+    display:flex;justify-content:space-between;
+    align-items:center;margin-bottom:12px;
+  }
+  .total{
+    font-size:18px;font-weight:700;
+    text-align:right;margin-top:12px;
   }
 </style>
 </head>
@@ -92,109 +75,151 @@
 
 <header>
   <div>Products</div>
-  <div>🛒 <span id="cartBadge" class="badge" style="display:none">0</span></div>
+  <div onclick="openCart()" style="cursor:pointer">
+    🛒 <span id="cartBadge" class="badge" style="display:none">0</span>
+  </div>
 </header>
 
 <div id="app" class="container"></div>
 
-<div id="backdrop" class="sheet-backdrop"></div>
-<div id="sheet" class="sheet"></div>
+<!-- Product Sheet -->
+<div id="productBackdrop" class="backdrop"></div>
+<div id="productSheet" class="sheet"></div>
+
+<!-- Cart Sheet -->
+<div id="cartBackdrop" class="backdrop"></div>
+<div id="cartSheet" class="sheet"></div>
 
 <script>
 /* ================= GLOBAL STATE ================= */
-const state = {
-  products: [],
-  selectedProduct: null,
-  qty: 1,
-  cart: []
+const state={
+  products:[],
+  selectedProduct:null,
+  qty:1,
+  cart:[]
 };
 
 /* ================= API LAYER ================= */
 const API_URL = "https://script.google.com/macros/s/AKfycby5H_jyKgM0l0XWzpzO4pBRvdfjQuXJppaNJuXrmAXN6RuDGpg0W42TmDtactLJrqMz/exec";
+const fetchProducts=()=>fetch(`${API_URL}?action=products`).then(r=>r.json());
 
-const fetchProducts = async () =>
-  fetch(`${API_URL}?action=products`).then(r=>r.json());
-
-/* ================= RENDER ================= */
+/* ================= RENDER FUNCTIONS ================= */
 function renderProducts(){
-  app.innerHTML = "";
+  app.innerHTML="";
   state.products.forEach(p=>{
     if(!p.active) return;
     const c=document.createElement("div");
     c.className="card";
-    c.onclick=()=>openSheet(p);
+    c.onclick=()=>openProduct(p);
     c.innerHTML=`
-      <div class="card-body">
-        <div class="name">${p.name}</div>
-        <div class="price">฿${p.price}</div>
-        <div class="stock">Stock: ${p.stock}</div>
-      </div>`;
+      <div class="name">${p.name}</div>
+      <div class="price">฿${p.price}</div>
+      <div class="stock">Stock: ${p.stock}</div>`;
     app.appendChild(c);
   });
 }
 
-function renderSheet(){
+function renderProductSheet(){
   const p=state.selectedProduct;
-  sheet.innerHTML=`
-    <div class="name">${p.name}</div>
+  productSheet.innerHTML=`
+    <h3>${p.name}</h3>
     <div class="price">฿${p.price}</div>
     <div class="stock">Available: ${p.stock}</div>
 
-    <input type="number"
-      min="0"
-      max="${p.stock}"
+    <input type="number" min="0" max="${p.stock}"
       value="${state.qty}"
-      oninput="updateQty(this.value)" />
+      oninput="state.qty=Math.min(${p.stock},Math.max(0,Number(this.value)||0))">
 
-    <button class="add-btn" onclick="addToCart()">Add to Cart</button>
-  `;
+    <button class="btn btn-primary" style="width:100%;margin-top:12px"
+      onclick="addToCart()">Add to Cart</button>`;
+}
+
+function renderCart(){
+  cartSheet.innerHTML="<h3>Cart</h3>";
+  if(state.cart.length===0){
+    cartSheet.innerHTML+=`<div style="color:#888">Cart is empty</div>`;
+    return;
+  }
+
+  state.cart.forEach((i,idx)=>{
+    cartSheet.innerHTML+=`
+      <div class="cart-item">
+        <div>
+          <div class="name">${i.name}</div>
+          <div class="price">฿${i.price}</div>
+        </div>
+        <div>
+          <input type="number" min="0"
+            value="${i.qty}"
+            oninput="updateCartQty(${idx},this.value)">
+          <button class="btn btn-danger"
+            onclick="removeItem(${idx})">✕</button>
+        </div>
+      </div>`;
+  });
+
+  const total=state.cart.reduce((s,i)=>s+i.price*i.qty,0);
+  cartSheet.innerHTML+=`<div class="total">Total: ฿${total}</div>`;
 }
 
 function renderBadge(){
-  const b=document.getElementById("cartBadge");
-  const count=state.cart.length;
-  b.style.display=count?"inline-block":"none";
-  b.textContent=count;
+  const b=cartBadge;
+  const c=state.cart.length;
+  b.style.display=c?"inline-block":"none";
+  b.textContent=c;
 }
 
 /* ================= VIEWER FLOW ================= */
-function openSheet(p){
+function openProduct(p){
   state.selectedProduct=p;
   state.qty=1;
-  renderSheet();
-  backdrop.style.display="block";
-  sheet.classList.add("show");
+  renderProductSheet();
+  productBackdrop.style.display="block";
+  productSheet.classList.add("show");
 }
-
-function closeSheet(){
-  backdrop.style.display="none";
-  sheet.classList.remove("show");
-}
-
-function updateQty(v){
-  const max=state.selectedProduct.stock;
-  state.qty=Math.max(0,Math.min(max,Number(v)||0));
+function closeProduct(){
+  productBackdrop.style.display="none";
+  productSheet.classList.remove("show");
 }
 
 function addToCart(){
   const p=state.selectedProduct;
-  const found=state.cart.find(i=>i.productId===p.productId);
-
-  if(found) found.qty=state.qty;
+  const f=state.cart.find(i=>i.productId===p.productId);
+  if(f) f.qty=state.qty;
   else state.cart.push({
     productId:p.productId,
     name:p.name,
     price:p.price,
     qty:state.qty
   });
-
   renderBadge();
-  closeSheet();
+  closeProduct();
 }
 
-backdrop.onclick=closeSheet;
+function openCart(){
+  renderCart();
+  cartBackdrop.style.display="block";
+  cartSheet.classList.add("show");
+}
+function closeCart(){
+  cartBackdrop.style.display="none";
+  cartSheet.classList.remove("show");
+}
 
-/* ================= INIT ================= */
+function updateCartQty(idx,v){
+  state.cart[idx].qty=Math.max(0,Number(v)||0);
+  if(state.cart[idx].qty===0) state.cart.splice(idx,1);
+  renderCart(); renderBadge();
+}
+function removeItem(idx){
+  state.cart.splice(idx,1);
+  renderCart(); renderBadge();
+}
+
+productBackdrop.onclick=closeProduct;
+cartBackdrop.onclick=closeCart;
+
+/* ================= INIT APP ================= */
 (async()=>{
   state.products=await fetchProducts();
   renderProducts();
