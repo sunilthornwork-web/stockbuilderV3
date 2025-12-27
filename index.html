@@ -929,28 +929,37 @@ const API_ENDPOINT =
 
 
 async function callAPI(action, payload = {}) {
-  const data = { action, payload };
+  const res = await fetch(API_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ action, payload })
+  });
 
-  const res = await fetch(API_ENDPOINT, options);
-const text = await res.text();
-return JSON.parse(text);
+  const text = await res.text();
+  return JSON.parse(text);
+}
 
-
+// ✅ ต้องอยู่นอกฟังก์ชัน
 const API = {
   fetchProducts: () => callAPI("fetchProducts"),
   createProduct: (p) => callAPI("createProduct", p),
 
   fetchOrders: () => callAPI("fetchOrders"),
   createOrder: (items) => callAPI("createOrder", { items }),
+
   approveOrder: (orderId, items) =>
     callAPI("approveOrder", { orderId, items }),
+
   rejectOrder: (orderId) =>
     callAPI("rejectOrder", { orderId }),
 
-  adjustStock: (p) => callAPI("adjustStock", {
-    ...p,
-    actionBy: "admin"
-  })
+  adjustStock: (p) =>
+    callAPI("adjustStock", {
+      ...p,
+      actionBy: "admin"
+    })
 };
 </script>
 
