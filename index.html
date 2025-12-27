@@ -563,6 +563,10 @@
 
     <button id="btn-save-product">บันทึก</button>
     <button class="secondary" id="btn-toggle-product">ปิด / เปิด สินค้า</button>
+    <!-- 🔴 เพิ่มตรงนี้ -->
+    <button class="secondary" id="btn-open-adjust-stock">
+     ปรับสต๊อก
+    </button>
     <button class="secondary" id="btn-close-product-detail">ปิด</button>
 
   </div>
@@ -1468,7 +1472,6 @@ if (qty > product.stock) {
   };
 </script>
 
-
 <script>
   async function createOrderFromCart() {
     if (state.cart.length === 0) return;
@@ -1661,6 +1664,51 @@ if (btnCloseProductDetail) {
 </script>
 
   <script>
+const stockSheet =
+  document.getElementById("admin-stock-adjust-sheet");
+
+const stockProductName =
+  document.getElementById("stock-adjust-product-name");
+
+const stockQtyInput =
+  document.getElementById("stock-adjust-qty");
+
+document.getElementById("btn-confirm-adjust-stock").onclick = () => {
+  const qty = Number(stockQtyInput.value);
+  const type = document.querySelector(
+    'input[name="stock-type"]:checked'
+  ).value;
+
+  if (!qty || qty <= 0) {
+    alert("กรุณากรอกจำนวน");
+    return;
+  }
+
+  // STEP 8.3.2 จะยิง backend ตรงนี้
+  alert(`เตรียมปรับสต๊อก ${type} จำนวน ${qty}`);
+
+  stockSheet.classList.add("hidden");
+};    
+
+// เปิด popup
+document.getElementById("btn-open-adjust-stock").onclick = () => {
+  if (!state.selectedProduct) return;
+
+  stockProductName.textContent =
+    `สินค้า: ${state.selectedProduct.name}
+     (คงเหลือ ${state.selectedProduct.stock})`;
+
+  stockQtyInput.value = "";
+  stockSheet.classList.remove("hidden");
+};
+
+// ปิด popup
+document.getElementById("btn-cancel-adjust-stock").onclick = () => {
+  stockSheet.classList.add("hidden");
+};
+</script>
+
+   <script>
 const addProductSheet =
   document.getElementById("admin-add-product-sheet");
 
